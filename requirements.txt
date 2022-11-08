@@ -1,0 +1,4 @@
+ipfabric==5.0.16
+dotenv
+typer
+rich
