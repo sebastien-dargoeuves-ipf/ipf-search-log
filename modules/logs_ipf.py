@@ -18,7 +18,7 @@ def download_logs(logs, ipf_devices: list):
     return_list = []
     for host in ipf_devices:
         print(".", end="")
-        #ipdb.set_trace()
+        # ipdb.set_trace()
         # Get the log file
         if dev_log := logs.get_text_log(host):
             return_list.append(
@@ -32,7 +32,7 @@ def download_logs(logs, ipf_devices: list):
     return return_list
 
 
-def search_logs(input_strings, log_list, verbose: bool = False):
+def search_logs(input_strings, log_list, prompt_delimiter: str, verbose: bool = False):
     # sourcery skip: low-code-quality
     """A function to search for a specific list of string within the list of log files.
     Attributes:
@@ -49,7 +49,7 @@ def search_logs(input_strings, log_list, verbose: bool = False):
             item = copy.deepcopy(input_string)
             if "command" in item.keys():
                 # we extract the output for the specified command
-                command_pattern = rf'(^{log["hostname"]}{item["delimiter"]}.{item["command"]}.*[\s\S]*?(?={log["hostname"]}{item["delimiter"]}))'
+                command_pattern = rf'(^{log["hostname"]}{prompt_delimiter}.{item["command"]}.*[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
                 command_regex = re.compile(command_pattern, re.MULTILINE)
                 if command_section := command_regex.search(log["text"]):
                     if "section" in item.keys():
@@ -57,13 +57,19 @@ def search_logs(input_strings, log_list, verbose: bool = False):
                         pattern = rf'(^{item["section"]}.*$[\n\r]*(?:^\s.*$[\n\r]*)*)'
                         section_regex = re.compile(pattern, re.MULTILINE)
                         if section := section_regex.search(command_section[0]):
-                            present_in_log = "YES" if item["match"] in section[0] else "NO"
+                            present_in_log = (
+                                "YES" if item["match"] in section[0] else "NO"
+                            )
                             if verbose:
                                 item["matched_section"] = section[0]
                         else:
                             present_in_log = "SECTION NOT FOUND"
                     else:
-                        present_in_log = "YES - NO SECTION" if item["match"] in command_section[0] else "NO - NO SECTION"
+                        present_in_log = (
+                            "YES - NO SECTION"
+                            if item["match"] in command_section[0]
+                            else "NO - NO SECTION"
+                        )
                         if verbose:
                             item["matched_section"] = command_section[0]
                 else:
@@ -72,6 +78,5 @@ def search_logs(input_strings, log_list, verbose: bool = False):
                 present_in_log = "COMMAND NOT SPECIFIED"
             item["hostname"] = log["hostname"]
             item["found"] = present_in_log
-            del item["delimiter"]
             result.append(item)
     return result
