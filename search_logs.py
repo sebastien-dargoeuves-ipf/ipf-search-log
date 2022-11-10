@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from ipfabric import IPFClient
 from ipfabric.tools import DeviceConfigs
 
-from modules.logs_ipf import download_logs, search_logs
+from modules.logs_ipf import download_logs, search_logs, search_dhcp_interfaces
 
 try:
     from rich import print
@@ -27,19 +27,25 @@ except ImportError:
 # Get Current Path
 CURRENT_PATH = Path(os.path.realpath(os.path.dirname(sys.argv[0]))).resolve()
 # testing only: CURRENT_PATH = Path(os.path.realpath(os.path.curdir)).resolve()
-# Load environment variables
-load_dotenv(os.path.join(CURRENT_PATH, ".env"), override=True)
 
 app = typer.Typer(add_completion=False)
-@app.command()
 
+
+@app.command()
 def main(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose mode."),
+    dhcp_intf: bool = typer.Option(
+        False,
+        "--dhcp-interfaces",
+        "-d",
+        help="Check for interfaces configured as DHCP client",
+    ),
 ):
     """
     Script to look for a pattern, in a section, for a specific command output
     in the log file of IP Fabric
     """
+
     def valid_json(raw_data: str):
         """
         Confirm the env variable is a valid JSON. Return the json if OK, or exit.
@@ -47,23 +53,23 @@ def main(
         try:
             json_data = json.loads(raw_data)
         except json.JSONDecodeError as exc:
-            print(
-                f"##ERR## The filter is not a valid JSON format: {exc}\n'{raw_data}'"
-            )
+            print(f"##ERR## The filter is not a valid JSON format: {exc}\n'{raw_data}'")
             sys.exit()
         return json_data
 
-
     # Getting variables
+    # Load environment variables
+    load_dotenv(os.path.join(CURRENT_PATH, ".env"), override=True)
+    prompt_delimiter = os.getenv("PROMPT_DELIMITER")
     device_filter = valid_json(os.getenv("DEVICES_FILTER", "{}"))
     input_data = valid_json(os.getenv("INPUT_DATA"))
 
     # Getting data from IP Fabric and printing output
     ipf_client = IPFClient(
-        base_url = os.getenv("IPF_URL"),
-        token = os.getenv("IPF_TOKEN"),
-        IPF_SNAPSHOT = os.getenv("IPF_SNAPSHOT", "$last"),
-        verify = (os.getenv("IPF_VERIFY", "False")=="True"),
+        base_url=os.getenv("IPF_URL"),
+        token=os.getenv("IPF_TOKEN"),
+        IPF_SNAPSHOT=os.getenv("IPF_SNAPSHOT", "$last"),
+        verify=(os.getenv("IPF_VERIFY", "False") == "True"),
     )
 
     logs = DeviceConfigs(ipf_client)
@@ -76,7 +82,13 @@ def main(
     result_ok = []
     result_nok = []
     print(f"\nSEARCHING through {len(log_list)} log files")
-    for check in search_logs(input_data, log_list, verbose):
+    result = (
+        search_dhcp_interfaces(log_list, prompt_delimiter, verbose)
+        if dhcp_intf
+        else search_logs(input_data, log_list, prompt_delimiter, verbose)
+    )
+
+    for check in result:
         if "YES" in check["found"]:
             result_ok.append(check)
         else:
