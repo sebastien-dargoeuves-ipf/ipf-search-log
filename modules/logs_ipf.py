@@ -2,13 +2,29 @@
 Set of functions to download log file from IP Fabric and search through those
 2022-11 - version 1.0
 """
+import contextlib
 import copy
 import re
 
-try:
+with contextlib.suppress(ImportError):
     from rich import print
-except ImportError:
-    None
+
+
+def display_log_compliance(result: list):
+    """
+    Takes the result and display if an interfce is conigured via DHCP or not
+    """
+    result_ok = []
+    result_nok = []
+    for check in result:
+        if check["found"] == "YES":
+            result_ok.append(check)
+        else:
+            result_nok.append(check)
+    print("\n------------- COMPLIANCE OK -------------")
+    print(result_ok)
+    print("\n!!!!!!!!!!!!! COMPLIANCE NOT OK !!!!!!!!!!!!!")
+    print(result_nok)
 
 
 def download_logs(logs, ipf_devices: list):
@@ -25,6 +41,7 @@ def download_logs(logs, ipf_devices: list):
                 {
                     **{
                         "hostname": host["hostname"],
+                        "sn": host["sn"],
                         "text": dev_log,
                     },
                 }
