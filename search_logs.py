@@ -81,6 +81,7 @@ def main(
 
     # Search for specific strings in the log files
     print(f"\nSEARCHING through {len(log_list)} log files")
+
     if dhcp_intf:
         result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
         display_log_compliance(result)

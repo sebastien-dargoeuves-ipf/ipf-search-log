@@ -28,7 +28,7 @@ In the file `.env` you have created, you will need to set the variables:
 * `IPF_SNAPSHOT` leave blank if you want to use the latest snapshot, otherwise add the `id` of the snapshot, i.e. `66365ad3-e568-403a-91a3-de1775b4f600`
 * `PROMPT_DELIMITER = "#"` this is the sign directly after the hostname from the command line, this is for us to know where to start the search for a command. For example, on Cisco, if you are in enabled mode you would use `#`
 * `DEVICES_FILTER = '{"hostname": ["like", "L35AC12"]}'` This is the filter used to get the list of devices for which we want to search the specific string, in the command_section. To create the filter, you can use the `?` on the inventory table of IP Fabric to see how the filter is generated.
-``
+
 * `INPUT_DATA` is the list of string/value we want to search for in the log.
   * `ref` is an optional field
   * `command` specifies in which command section we should look for this command, from the IP Fabric log
@@ -58,7 +58,6 @@ You can also use the *verbose* mode which will show you what has been matched.
 python3 search_logs.py -v
 ```
 
-*WORK IN PROGRESS*
 There is also a `-d` option to check for interfaces with IP address assigned by DHCP
 
 ```zsh
