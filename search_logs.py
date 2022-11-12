@@ -1,12 +1,16 @@
 """
-General Python3 script for IP Fabric's API to get the list of available log files and searches the specific input strings in it, prints the output.
+General Python3 script for IP Fabric's API to get the list of available
+log files and searches the specific input strings in it, prints the output.
 
 2022-11 - version 1.0
-Adaptation of the search_config script created by Milan. This time we won't look in the config backup, but in the logs
-using ipfabric SDK
+Adaptation of the search_config script created by Milan. This time
+we won't look in the config backup, but in the logs
+
 WARNING: you should make sure the SDK version matches your version of IP Fabric
 """
 
+
+import contextlib
 import json
 import os
 import sys
@@ -16,17 +20,14 @@ import typer
 from dotenv import load_dotenv
 from ipfabric import IPFClient
 from ipfabric.tools import DeviceConfigs
+from modules.logs_dhcp import search_dhcp_interfaces
+from modules.logs_ipf import display_log_compliance, download_logs, search_logs
 
-from modules.logs_ipf import download_logs, search_logs, search_dhcp_interfaces
-
-try:
+with contextlib.suppress(ImportError):
     from rich import print
-except ImportError:
-    None
-
 # Get Current Path
 CURRENT_PATH = Path(os.path.realpath(os.path.dirname(sys.argv[0]))).resolve()
-# testing only: CURRENT_PATH = Path(os.path.realpath(os.path.curdir)).resolve()
+# CURRENT_PATH = Path(os.path.realpath(os.path.curdir)).resolve() # for testing only
 
 app = typer.Typer(add_completion=False)
 
@@ -79,24 +80,13 @@ def main(
     log_list = download_logs(logs, ipf_devices)
 
     # Search for specific strings in the log files
-    result_ok = []
-    result_nok = []
     print(f"\nSEARCHING through {len(log_list)} log files")
-    result = (
-        search_dhcp_interfaces(log_list, prompt_delimiter, verbose)
-        if dhcp_intf
-        else search_logs(input_data, log_list, prompt_delimiter, verbose)
-    )
-
-    for check in result:
-        if "YES" in check["found"]:
-            result_ok.append(check)
-        else:
-            result_nok.append(check)
-    print("\n------------- COMPLIANCE OK -------------")
-    print(result_ok)
-    print("\n!!!!!!!!!!!!! COMPLIANCE NOK !!!!!!!!!!!!!")
-    print(result_nok)
+    if dhcp_intf:
+        result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
+        display_log_compliance(result, "DHCP")
+    else:
+        result = search_logs(input_data, log_list, prompt_delimiter, verbose)
+        display_log_compliance(result, "OK")
 
 
 if __name__ == "__main__":
