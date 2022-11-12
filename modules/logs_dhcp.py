@@ -9,7 +9,21 @@ import re
 from ipfabric import IPFClient
 
 
-
+def display_log_compliance(result: list):
+    """
+    Takes the result and display if an interfce is conigured via DHCP or not
+    """
+    result_ok = []
+    result_nok = []
+    for check in result:
+        if check["found"] == "DHCP":
+            result_ok.append(check)
+        else:
+            result_nok.append(check)
+    print("\n------------- INTERFACES with DHCP -------------")
+    print(result_ok)
+    print("\n!!!!!!!!!!!!! INTERFACES NOT with DHCP !!!!!!!!!!!!!")
+    print(result_nok)
 def search_dhcp_interfaces(
     ipf_client: IPFClient, log_list, prompt_delimiter: str, verbose: bool = False
 ):

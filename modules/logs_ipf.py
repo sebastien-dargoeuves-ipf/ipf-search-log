@@ -10,20 +10,20 @@ with contextlib.suppress(ImportError):
     from rich import print
 
 
-def display_log_compliance(result: list, ok_string: str = "OK"):
+def display_log_compliance(result: list):
     """
     Takes the result and display if an interfce is conigured via DHCP or not
     """
     result_ok = []
     result_nok = []
     for check in result:
-        if ok_string == check["found"]:
+        if check["found"] == "YES":
             result_ok.append(check)
         else:
             result_nok.append(check)
-    print("\n------------- INTERFACES with DHCP -------------")
+    print("\n------------- COMPLIANCE OK -------------")
     print(result_ok)
-    print("\n!!!!!!!!!!!!! INTERFACES NOT with DHCP !!!!!!!!!!!!!")
+    print("\n!!!!!!!!!!!!! COMPLIANCE NOT OK !!!!!!!!!!!!!")
     print(result_nok)
 
 
