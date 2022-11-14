@@ -63,7 +63,7 @@ def main(
     load_dotenv(os.path.join(CURRENT_PATH, ".env"), override=True)
     prompt_delimiter = os.getenv("PROMPT_DELIMITER")
     device_filter = valid_json(os.getenv("DEVICES_FILTER", "{}"))
-    input_data = valid_json(os.getenv("INPUT_DATA"))
+    input_data = valid_json(os.getenv("INPUT_DATA", ""))
 
     # Getting data from IP Fabric and printing output
     ipf_client = IPFClient(
