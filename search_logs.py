@@ -51,19 +51,20 @@ def main(
         """
         Confirm the env variable is a valid JSON. Return the json if OK, or exit.
         """
+        if not raw_data:
+            print("##ERR## The `INPUT_DATA` is not in the .env file.")
+            sys.exit()
         try:
             json_data = json.loads(raw_data)
         except json.JSONDecodeError as exc:
-            print(f"##ERR## The filter is not a valid JSON format: {exc}\n'{raw_data}'")
+            print(f"##ERR## The `INPUT_DATA` is not a valid JSON.\n{exc}\n'{raw_data}'")
             sys.exit()
         return json_data
 
-    # Getting variables
     # Load environment variables
     load_dotenv(os.path.join(CURRENT_PATH, ".env"), override=True)
     prompt_delimiter = os.getenv("PROMPT_DELIMITER")
     device_filter = valid_json(os.getenv("DEVICES_FILTER", "{}"))
-    input_data = valid_json(os.getenv("INPUT_DATA", ""))
 
     # Getting data from IP Fabric and printing output
     ipf_client = IPFClient(
@@ -81,11 +82,11 @@ def main(
 
     # Search for specific strings in the log files
     print(f"\nSEARCHING through {len(log_list)} log files")
-
     if dhcp_intf:
         result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
         display_log_compliance(result)
     else:
+        input_data = valid_json(os.getenv("INPUT_DATA", ""))
         result = search_logs(input_data, log_list, prompt_delimiter, verbose)
         display_log_compliance(result)
 
