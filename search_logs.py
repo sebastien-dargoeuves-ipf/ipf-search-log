@@ -20,8 +20,8 @@ import typer
 from dotenv import load_dotenv
 from ipfabric import IPFClient
 from ipfabric.tools import DeviceConfigs
-from modules.logs_dhcp import search_dhcp_interfaces
-from modules.logs_ipf import display_log_compliance, download_logs, search_logs
+from modules.logs_dhcp import search_dhcp_interfaces, display_dhcp_interfaces
+from modules.logs_ipf import download_logs, search_logs, display_log_compliance
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -84,7 +84,7 @@ def main(
     print(f"\nSEARCHING through {len(log_list)} log files")
     if dhcp_intf:
         result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
-        display_log_compliance(result)
+        display_dhcp_interfaces(result)
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))
         result = search_logs(input_data, log_list, prompt_delimiter, verbose)

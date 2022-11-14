@@ -3,13 +3,16 @@ Set of functions to download log file from IP Fabric and search through those
 2022-11 - version 1.0
 """
 
+import contextlib
 import copy
 import re
 
 from ipfabric import IPFClient
 
+with contextlib.suppress(ImportError):
+    from rich import print
 
-def display_log_compliance(result: list):
+def display_dhcp_interfaces(result: list):
     """
     Takes the result and display if an interfce is conigured via DHCP or not
     """
@@ -48,8 +51,7 @@ def search_dhcp_interfaces(
     result = []
     input_string = {
         "command": "show ip interface",
-        "match": "Address determined by DHCP", #"MTU is 1514"
-        "interface": "",
+        "match": "Address determined by DHCP"
     }
     for log in log_list:
         # we search and extract the output for the show ip interface command
@@ -59,19 +61,20 @@ def search_dhcp_interfaces(
             # we search and extract the section for each interface
             for interface in get_device_interfaces(ipf_client, log["sn"]):
                 # create a deepcopy to edit the item without affecting input_strings
-                item = copy.deepcopy(input_string)
+                #item = copy.deepcopy(input_string)
+                item = {}
+                item["hostname"] = log["hostname"]
                 item["interface"] = interface["nameOriginal"]
                 pattern = rf'(^{item["interface"]}.*$[\n\r]*(?:^\s.*$[\n\r]*)*)'
                 section_regex = re.compile(pattern, re.MULTILINE)
                 if section := section_regex.search(command_section[0]):
                     present_in_log = (
-                        "DHCP" if item["match"] in section[0] else "NOT DHCP"
+                        "DHCP" if input_string["match"] in section[0] else "NOT DHCP"
                     )
                     if verbose:
                         item["matched_section"] = section[0]
                 else:
                     present_in_log = f"Interface `{item['interface']}` not found"
-                item["hostname"] = log["hostname"]
                 item["found"] = present_in_log
                 result.append(item)
 

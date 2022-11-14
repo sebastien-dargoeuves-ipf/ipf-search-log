@@ -64,6 +64,7 @@ def search_logs(input_strings, log_list, prompt_delimiter: str, verbose: bool = 
         for input_string in input_strings:
             # create a deepcopy to edit the item without affecting input_strings
             item = copy.deepcopy(input_string)
+            item["hostname"] = log["hostname"]
             if "command" in item.keys():
                 # we extract the output for the specified command
                 command_pattern = rf'(^{log["hostname"]}{prompt_delimiter}.{item["command"]}.*[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
@@ -93,7 +94,6 @@ def search_logs(input_strings, log_list, prompt_delimiter: str, verbose: bool = 
                     present_in_log = "COMMAND NOT FOUND"
             else:
                 present_in_log = "COMMAND NOT SPECIFIED"
-            item["hostname"] = log["hostname"]
             item["found"] = present_in_log
             result.append(item)
     return result
