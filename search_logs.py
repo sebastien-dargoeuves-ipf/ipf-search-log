@@ -70,7 +70,7 @@ def main(
     ipf_client = IPFClient(
         base_url=os.getenv("IPF_URL"),
         token=os.getenv("IPF_TOKEN"),
-        IPF_SNAPSHOT=os.getenv("IPF_SNAPSHOT", "$last"),
+        snapshot_id=os.getenv("IPF_SNAPSHOT", "$last"),
         verify=(os.getenv("IPF_VERIFY", "False") == "True"),
     )
 
