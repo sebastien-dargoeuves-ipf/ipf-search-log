@@ -38,9 +38,12 @@ In the file `.env` you have created, you will need to set the variables:
 Example:
 
 ```text
+DEVICES_FILTER = '{"family": ["like", "ios-xe"]}'
 INPUT_DATA = '[
     {"ref": "1.1.1", "command": "show ip interface", "section": "Loopback", "match": "MTU is 1514"},
-    {"ref": "1.1.2", "command": "sh run", "section": "ntp" , "match": "10.0.10.10"}
+    {"ref": "1.1.2", "command": "sh run", "section": "ntp" , "match": "10.0.10.10"},
+    {"ref": "1.2.1", "command": "show running-config", "match": "no ip http server"},
+    {"ref": "1.2.2", "command": "show running-config", "match": "no ip http secure-server"}
 ]'
 ```
 
