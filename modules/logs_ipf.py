@@ -17,7 +17,7 @@ def display_log_compliance(result: list):
     result_ok = []
     result_nok = []
     for check in result:
-        if check["found"] == "YES":
+        if "YES" in check["found"]:
             result_ok.append(check)
         else:
             result_nok.append(check)
@@ -67,7 +67,7 @@ def search_logs(input_strings, log_list, prompt_delimiter: str, verbose: bool = 
             item["hostname"] = log["hostname"]
             if "command" in item.keys():
                 # we extract the output for the specified command
-                command_pattern = rf'(^{log["hostname"]}{prompt_delimiter}.{item["command"]}.*[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
+                command_pattern = rf'({log["hostname"]}{prompt_delimiter}.{item["command"]}.*[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
                 command_regex = re.compile(command_pattern, re.MULTILINE)
                 if command_section := command_regex.search(log["text"]):
                     if "section" in item.keys():
