@@ -22,6 +22,7 @@ from ipfabric import IPFClient
 from ipfabric.tools import DeviceConfigs
 from modules.logs_dhcp import search_dhcp_interfaces, display_dhcp_interfaces
 from modules.logs_ipf import download_logs, search_logs, display_log_compliance
+from modules.logs_switchport import search_switchport_logs, display_switchport_log_compliance
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -40,6 +41,18 @@ def main(
         "--dhcp-interfaces",
         "-d",
         help="Check for interfaces configured as DHCP client",
+    ),
+    switchport_intf: bool = typer.Option(
+        False,
+        "--switchport-interfaces",
+        "-sw",
+        help="Check switchport interfaces, access or not",
+    ),
+    file_output: str = typer.Option(
+        None,
+        "--file-output",
+        "-fo",
+        help="Write the output to a file",
     ),
 ):
     """
@@ -84,12 +97,37 @@ def main(
     print(f"\nSEARCHING through {len(log_list)} log files")
     if dhcp_intf:
         result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
-        display_dhcp_interfaces(result)
+        if not file_output:
+            display_dhcp_interfaces(result)
+    elif switchport_intf:
+        if "hostname" in device_filter.keys():
+            print(f" and matching with all {ipf_client.technology.interfaces.switchport.count(filters=device_filter)} interfaces")
+            switchport_interfaces = ipf_client.technology.interfaces.switchport.all(columns=['hostname','intName'], filters=device_filter)
+        else:
+            print(f" and matching with all {ipf_client.technology.interfaces.switchport.count()} interfaces")
+            switchport_interfaces = ipf_client.technology.interfaces.switchport.all(columns=['hostname','intName'])#,filters=device_filter)
+        result = search_switchport_logs(log_list, prompt_delimiter, switchport_interfaces, verbose)
+        if not file_output:
+            display_switchport_log_compliance(result)
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))
         result = search_logs(input_data, log_list, prompt_delimiter, verbose)
-        display_log_compliance(result)
+        if not file_output:
+            display_log_compliance(result)
 
+    if file_output and file_output.endswith("csv"):
+        # Write the output to a CSV file
+        import csv
+        print("CSV OUTPUT")
+        with open(file_output, "w") as file:
+            writer = csv.DictWriter(file, fieldnames=result[0].keys())
+            writer.writeheader()
+            writer.writerows(result)
+    elif file_output:
+        print("JSON OUTPUT")
+        with open(file_output, "w") as file:
+            json.dump(result, file, indent=4)
+        print(f"\nOUTPUT written to {file_output}")
 
 if __name__ == "__main__":
     app()

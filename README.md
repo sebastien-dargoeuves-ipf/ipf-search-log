@@ -49,22 +49,41 @@ INPUT_DATA = '[
 
 ### Run the script
 
-Running the python script this way will give you an update showing what is compliant: `match` string has been found, and what is not compliant.
+Running the python script will show you what is compliant: `match` string has been found, and what is not compliant.
 
-```zsh
-python3 search_logs.py
-```
+To run the script, use the following command:
+python script_name.py [OPTIONS]
+Options:
 
-You can also use the *verbose* mode which will show you what has been matched.
+* --verbose, -v: Enable verbose mode for detailed output.
+* --dhcp-interfaces, -d: Check for interfaces configured as DHCP clients.
+* --switchport-interfaces, -sw: Check switchport interfaces to identify access ports (only for IOS and IOS-XE)
+* --file-output FILE, -fo FILE: Write the output to a file in either CSV or JSON format.
 
-```zsh
-python3 search_logs.py -v
-```
+#### Examples
 
-There is also a `-d` option to check for interfaces with IP address assigned by DHCP
+* Search for a custom pattern in a specific section of the log files:
+`python script_name.py`
+* Check for interfaces configured as DHCP clients:
+`python script_name.py --dhcp-interfaces`
+* Check switchport interfaces for access or non-access configuration:
+`python script_name.py --switchport-interfaces`
+* Write the output to a CSV file:
+`python script_name.py --file-output output.csv`
+* Write the output to a JSON file:
+`python script_name.py --file-output output.json`
 
-```zsh
-python3 search_logs.py -d
+#### Output
+
+The script will output the results of the search operation. The output format depends on the options used:
+
+* If no --file-output option is provided, the output will be printed to the console.
+* If the --file-output option is provided with a .csv file extension, the output will be written to a CSV file.
+* If the --file-output option is provided with a .json file extension, the output will be written to a JSON file.
+
+
+```note
+For the DHCP and SWITCHPORT option, you do not need the INPUT_DATA variable in the .env file.
 ```
 
 ## Help
