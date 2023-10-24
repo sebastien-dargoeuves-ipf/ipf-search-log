@@ -22,7 +22,10 @@ from ipfabric import IPFClient
 from ipfabric.tools import DeviceConfigs
 from modules.logs_dhcp import search_dhcp_interfaces, display_dhcp_interfaces
 from modules.logs_ipf import download_logs, search_logs, display_log_compliance
-from modules.logs_switchport import search_switchport_logs, display_switchport_log_compliance
+from modules.logs_switchport import (
+    search_switchport_logs,
+    display_switchport_log_compliance,
+)
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -95,25 +98,56 @@ def main(
 
     # Search for specific strings in the log files
     print(f"\nSEARCHING through {len(log_list)} log files")
+    # Call the DHCP function, if the option is selected
     if dhcp_intf:
         result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_dhcp_interfaces(result)
+    # Call the switchport function, if the option is selected
     elif switchport_intf:
+        # Get the list of switchport interfaces filtered by the device_filter if it's based on hostname
         if "hostname" in device_filter.keys():
-            print(f" and matching with all {ipf_client.technology.interfaces.switchport.count(filters=device_filter)} interfaces")
-            switchport_interfaces = ipf_client.technology.interfaces.switchport.all(columns=['hostname','intName'], filters=device_filter)
+            print(
+                f" and matching with all {ipf_client.technology.interfaces.switchport.count(filters=device_filter)} interfaces"
+            )
+            switchport_interfaces = ipf_client.technology.interfaces.switchport.all(
+                columns=["hostname", "intName"], filters=device_filter
+            )
+        # Otherwise, we get the list of all switchport interfaces, as we can't filter.
         else:
-            print(f" and matching with all {ipf_client.technology.interfaces.switchport.count()} interfaces")
-            switchport_interfaces = ipf_client.technology.interfaces.switchport.all(columns=['hostname','intName'])#,filters=device_filter)
-        result = search_switchport_logs(log_list, prompt_delimiter, switchport_interfaces, verbose)
+            print(
+                f" and matching with all {ipf_client.technology.interfaces.switchport.count()} interfaces"
+            )
+            switchport_interfaces = ipf_client.technology.interfaces.switchport.all(
+                columns=["hostname", "intName"]
+            )  # ,filters=device_filter)
+        result = search_switchport_logs(
+            log_list, prompt_delimiter, switchport_interfaces, verbose
+        )
         if not file_output:
             display_switchport_log_compliance(result)
+    # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))
         result = search_logs(input_data, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_log_compliance(result)
+
+    # Write the output to a file, if requested, in CSV or JSON format
+    if file_output and file_output.endswith("csv"):
+        # Write the output to a CSV file
+        import csv
+
+        print("CSV OUTPUT")
+        with open(file_output, "w") as file:
+            writer = csv.DictWriter(file, fieldnames=result[0].keys())
+            writer.writeheader()
+            writer.writerows(result)
+    elif file_output:
+        print("JSON OUTPUT")
+        with open(file_output, "w") as file:
+            json.dump(result, file, indent=4)
+        print(f"\nOUTPUT written to {file_output}")
 
     if file_output and file_output.endswith("csv"):
         # Write the output to a CSV file

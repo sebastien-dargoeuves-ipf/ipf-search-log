@@ -52,7 +52,7 @@ INPUT_DATA = '[
 Running the python script will show you what is compliant: `match` string has been found, and what is not compliant.
 
 To run the script, use the following command:
-python script_name.py [OPTIONS]
+python search_logs.py [OPTIONS]
 Options:
 
 * --verbose, -v: Enable verbose mode for detailed output.
@@ -63,15 +63,15 @@ Options:
 #### Examples
 
 * Search for a custom pattern in a specific section of the log files:
-`python script_name.py`
+`python search_logs.py`
 * Check for interfaces configured as DHCP clients:
-`python script_name.py --dhcp-interfaces`
+`python search_logs.py --dhcp-interfaces`
 * Check switchport interfaces for access or non-access configuration:
-`python script_name.py --switchport-interfaces`
+`python search_logs.py --switchport-interfaces`
 * Write the output to a CSV file:
-`python script_name.py --file-output output.csv`
+`python search_logs.py --file-output output.csv`
 * Write the output to a JSON file:
-`python script_name.py --file-output output.json`
+`python search_logs.py --file-output output.json`
 
 #### Output
 

@@ -19,6 +19,7 @@ with contextlib.suppress(ImportError):
     from rich import print
 from ipdb import set_trace as debug
 
+
 def display_switchport_log_compliance(result: list):
     """
     Takes the result and display if an interfce is conigured via DHCP or not
@@ -34,6 +35,7 @@ def display_switchport_log_compliance(result: list):
     print(result_ok)
     print("\n!!!!!!!!!!!!! NOT ACCESS PORT !!!!!!!!!!!!!")
     print(result_nok)
+
 
 def get_device_interfaces(device: str, switchport_interfaces: list):
     """
@@ -52,12 +54,15 @@ def get_device_interfaces(device: str, switchport_interfaces: list):
     """
 
     return [
-        interface['intName']
+        interface["intName"]
         for interface in switchport_interfaces
-        if interface['hostname'] == device
+        if interface["hostname"] == device
     ]
 
-def search_switchport_logs(log_list, prompt_delimiter: str, switchport_interfaces: list, verbose: bool = False):
+
+def search_switchport_logs(
+    log_list, prompt_delimiter: str, switchport_interfaces: list, verbose: bool = False
+):
     # sourcery skip: low-code-quality
     """A function to search for a specific list of string within the list of log files.
     Attributes:
@@ -70,8 +75,8 @@ def search_switchport_logs(log_list, prompt_delimiter: str, switchport_interface
     result = []
     input_string = {
         "command": "show interface switchport",
-        "match": "Administrative Mode: .*access"
-    } # technically we also need to search for "Administrative Mode: access" maybe play with regex once it's working
+        "match": "Administrative Mode: .*access",
+    }  # technically we also need to search for "Administrative Mode: access" maybe play with regex once it's working
     for log in log_list:
         # debug()
         # for input_string in input_strings:
@@ -81,23 +86,27 @@ def search_switchport_logs(log_list, prompt_delimiter: str, switchport_interface
         command_pattern = rf'({log["hostname"]}{prompt_delimiter}.{input_string["command"]}.*[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
         command_regex = re.compile(command_pattern, re.MULTILINE)
         # Now we get the listi of interfaces for the device
-        device_interfaces = get_device_interfaces(log["hostname"], switchport_interfaces)
+        device_interfaces = get_device_interfaces(
+            log["hostname"], switchport_interfaces
+        )
         print(".", end="")
         for interface in device_interfaces:
             if command_section := command_regex.search(log["text"]):
-                    item = copy.deepcopy(input_string)
-                    item["hostname"] = log["hostname"]
-                    # we extract the section within the output of the command
-                    item["interface"] = interface
-                    pattern = rf'(^Name: {interface}([\s\S]*)Name:)'
-                    section_regex = re.compile(pattern, re.MULTILINE)
-                    if section := section_regex.search(command_section[0]):
-                        # we search for `Administrative Mode: .*access` within the section
-                        present_in_log = "YES" if re.search(item["match"], section[0]) else "NO"
-                        if verbose:
-                            item["matched_section"] = section[0]
-                    else:
-                        present_in_log = "NOT IN SWITCHPORT OUTPUT"
+                item = copy.deepcopy(input_string)
+                item["hostname"] = log["hostname"]
+                # we extract the section within the output of the command
+                item["interface"] = interface
+                pattern = rf"(^Name: {interface}([\s\S]*)Name:)"
+                section_regex = re.compile(pattern, re.MULTILINE)
+                if section := section_regex.search(command_section[0]):
+                    # we search for `Administrative Mode: .*access` within the section
+                    present_in_log = (
+                        "YES" if re.search(item["match"], section[0]) else "NO"
+                    )
+                    if verbose:
+                        item["matched_section"] = section[0]
+                else:
+                    present_in_log = "NOT IN SWITCHPORT OUTPUT"
 
             else:
                 present_in_log = "COMMAND NOT FOUND"
