@@ -1,4 +1,4 @@
-ipfabric==5.0.16
+ipfabric
 dotenv
 typer
 rich
