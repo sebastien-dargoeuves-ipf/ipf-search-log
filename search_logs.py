@@ -93,7 +93,7 @@ def main(
     logs = DeviceConfigs(ipf_client)
     # Download log files for matching hostnames
     ipf_devices = ipf_client.inventory.devices.all(filters=device_filter)
-    print(f"\nDOWNLOADING log files for {len(ipf_devices)} devices", end="")
+    print(f"\nDOWNLOADING log files for {len(ipf_devices)} devices\n", end="")
     log_list = download_logs(logs, ipf_devices)
 
     # Search for specific strings in the log files
@@ -137,31 +137,16 @@ def main(
     if file_output and file_output.endswith("csv"):
         # Write the output to a CSV file
         import csv
-
-        print("CSV OUTPUT")
         with open(file_output, "w") as file:
             writer = csv.DictWriter(file, fieldnames=result[0].keys())
             writer.writeheader()
             writer.writerows(result)
+        print(f"\nCSV OUTPUT written to {file_output}")
     elif file_output:
-        print("JSON OUTPUT")
+        # Write the output to a JSON file
         with open(file_output, "w") as file:
             json.dump(result, file, indent=4)
-        print(f"\nOUTPUT written to {file_output}")
-
-    if file_output and file_output.endswith("csv"):
-        # Write the output to a CSV file
-        import csv
-        print("CSV OUTPUT")
-        with open(file_output, "w") as file:
-            writer = csv.DictWriter(file, fieldnames=result[0].keys())
-            writer.writeheader()
-            writer.writerows(result)
-    elif file_output:
-        print("JSON OUTPUT")
-        with open(file_output, "w") as file:
-            json.dump(result, file, indent=4)
-        print(f"\nOUTPUT written to {file_output}")
+        print(f"\nJSON OUTPUT written to {file_output}")
 
 if __name__ == "__main__":
     app()
