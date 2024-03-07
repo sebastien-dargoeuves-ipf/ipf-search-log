@@ -27,14 +27,16 @@ def display_log_compliance(result: list):
     print(result_nok)
 
 
-def download_logs(logs, ipf_devices: list):
+def download_logs(logs, ipf_devices: list, supported_families: list):
     """
     Function to download the IP Fabric log of provided list of devices
     """
     return_list = []
     for host in ipf_devices:
+        if host["family"] not in supported_families:#, "ios-xr", "nx-os", "eos"]:
+            print("x", end="")
+            continue
         print(".", end="")
-        # ipdb.set_trace()
         # Get the log file
         if dev_log := logs.get_text_log(host):
             return_list.append(
