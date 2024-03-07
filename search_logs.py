@@ -14,10 +14,9 @@ import contextlib
 import json
 import os
 import sys
-from pathlib import Path
 
 import typer
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from ipfabric import IPFClient
 from ipfabric.tools import DeviceConfigs
 from modules.logs_dhcp import search_dhcp_interfaces, display_dhcp_interfaces
@@ -26,12 +25,11 @@ from modules.logs_switchport import (
     search_switchport_logs,
     display_switchport_log_compliance,
 )
+from modules.logs_password_encryption import find_password_encryption, display_password_encryption
+from modules.logs_macro_intf import search_interfaces_macro, display_interfaces_macro
 
 with contextlib.suppress(ImportError):
     from rich import print
-# Get Current Path
-CURRENT_PATH = Path(os.path.realpath(os.path.dirname(sys.argv[0]))).resolve()
-# CURRENT_PATH = Path(os.path.realpath(os.path.curdir)).resolve() # for testing only
 
 app = typer.Typer(add_completion=False)
 
@@ -42,7 +40,7 @@ def main(
     dhcp_intf: bool = typer.Option(
         False,
         "--dhcp-interfaces",
-        "-d",
+        "-dhcp",
         help="Check for interfaces configured as DHCP client",
     ),
     switchport_intf: bool = typer.Option(
@@ -50,6 +48,18 @@ def main(
         "--switchport-interfaces",
         "-sw",
         help="Check switchport interfaces, access or not",
+    ),
+    password_level: bool = typer.Option(
+        False,
+        "--password-encryption",
+        "-pwd",
+        help="Check the password level of the devices",
+    ),
+    macro_intf: bool = typer.Option(
+        False,
+        "--macro-interfaces",
+        "-macro",
+        help="Check if a Macro is assigned to the interface",
     ),
     file_output: str = typer.Option(
         None,
@@ -77,8 +87,16 @@ def main(
             sys.exit()
         return json_data
 
+    def get_logs_supported_devices(ipf_devices, supported_families):
+        # Download log files for matching hostnames
+        print(f"\nDOWNLOADING log files for {len(ipf_devices)} devices\n", end="")
+        log_list = download_logs(logs, ipf_devices, supported_families)
+        # Search for specific strings in the log files
+        print(f"\nSEARCHING through {len(log_list)} log files")
+        return log_list
+    
     # Load environment variables
-    load_dotenv(os.path.join(CURRENT_PATH, ".env"), override=True)
+    load_dotenv(find_dotenv(), override=True)
     prompt_delimiter = os.getenv("PROMPT_DELIMITER")
     device_filter = valid_json(os.getenv("DEVICES_FILTER", "{}"))
 
@@ -91,20 +109,18 @@ def main(
     )
 
     logs = DeviceConfigs(ipf_client)
-    # Download log files for matching hostnames
     ipf_devices = ipf_client.inventory.devices.all(filters=device_filter)
-    print(f"\nDOWNLOADING log files for {len(ipf_devices)} devices\n", end="")
-    log_list = download_logs(logs, ipf_devices)
-
-    # Search for specific strings in the log files
-    print(f"\nSEARCHING through {len(log_list)} log files")
     # Call the DHCP function, if the option is selected
     if dhcp_intf:
+        supported_families = ["ios-xe", "ios", "ios-xr", "nxos"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
         result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_dhcp_interfaces(result)
     # Call the switchport function, if the option is selected
     elif switchport_intf:
+        supported_families = ["ios-xe", "ios", "ios-xr", "nxos"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
         # Get the list of switchport interfaces filtered by the device_filter if it's based on hostname
         if "hostname" in device_filter.keys():
             print(
@@ -126,6 +142,18 @@ def main(
         )
         if not file_output:
             display_switchport_log_compliance(result)
+    elif password_level:
+        supported_families = ["ios-xe", "ios", "ios-xr", "nxos", "eos"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
+        result = find_password_encryption(ipf_client, ipf_devices, log_list, prompt_delimiter, verbose)
+        if not file_output:
+            display_password_encryption(result)
+    elif macro_intf:
+        supported_families = ["ios-xe", "ios"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
+        result = search_interfaces_macro(ipf_client, ipf_devices, log_list, prompt_delimiter, verbose)
+        if not file_output:
+            display_interfaces_macro(result)
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))

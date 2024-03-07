@@ -4,7 +4,6 @@ Set of functions to download log file from IP Fabric and search through those
 """
 
 import contextlib
-import copy
 import re
 
 from ipfabric import IPFClient
