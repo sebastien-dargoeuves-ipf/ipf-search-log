@@ -89,7 +89,7 @@ def main(
 
     def get_logs_supported_devices(ipf_devices, supported_families):
         # Download log files for matching hostnames
-        print(f"\nDOWNLOADING log files for {len(ipf_devices)} devices\n", end="")
+        print(f"\nDOWNLOADING log files...\n", end="")
         log_list = download_logs(logs, ipf_devices, supported_families)
         # Search for specific strings in the log files
         print(f"\nSEARCHING through {len(log_list)} log files")
