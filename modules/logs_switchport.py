@@ -11,6 +11,7 @@ Switchport: Enabled
 Administrative Mode: static access
 
 """
+
 import contextlib
 import copy
 import re

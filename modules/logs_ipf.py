@@ -2,6 +2,7 @@
 Set of functions to download log file from IP Fabric and search through those
 2022-11 - version 1.0
 """
+
 import contextlib
 import copy
 import re
@@ -33,7 +34,7 @@ def download_logs(logs, ipf_devices: list, supported_families: list):
     """
     return_list = []
     for host in ipf_devices:
-        if host["family"] not in supported_families:#, "ios-xr", "nx-os", "eos"]:
+        if host["family"] not in supported_families:  # , "ios-xr", "nx-os", "eos"]:
             print("x", end="")
             continue
         print(".", end="")
