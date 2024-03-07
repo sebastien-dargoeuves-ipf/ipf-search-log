@@ -7,7 +7,6 @@ with contextlib.suppress(ImportError):
     from rich import print
 
 
-
 def display_interfaces_macro(result: list):
     """
     Takes the result and display if an interfce is conigured via DHCP or not
@@ -28,10 +27,15 @@ def display_interfaces_macro(result: list):
 
 
 def get_device_family(ipf_devices, sn):
-    return [device['family'] for device in ipf_devices if device['sn'] == sn][0]
+    return [device["family"] for device in ipf_devices if device["sn"] == sn][0]
+
 
 def search_interfaces_macro(
-    ipf_client: IPFClient, ipf_devices: list, log_list, prompt_delimiter: str, verbose: bool = False
+    ipf_client: IPFClient,
+    ipf_devices: list,
+    log_list,
+    prompt_delimiter: str,
+    verbose: bool = False,
 ):
     result = []
     for log in log_list:
@@ -45,6 +49,7 @@ def search_interfaces_macro(
         # elif family == "eos":
         #     result.append(eos_interfaces_macro(log, prompt_delimiter))
     return result
+
 
 def ios_xe_interfaces_macro(log, prompt_delimiter, family):
     """
@@ -85,4 +90,3 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
     output = [{interfaces: macro} for interfaces, macro in matches]
     # output.append({"family": family})
     return {log["hostname"]: output}
-

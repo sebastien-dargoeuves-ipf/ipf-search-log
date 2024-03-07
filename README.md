@@ -58,16 +58,22 @@ Options:
 * --verbose, -v: Enable verbose mode for detailed output.
 * --dhcp-interfaces, -d: Check for interfaces configured as DHCP clients.
 * --switchport-interfaces, -sw: Check switchport interfaces to identify access ports (only for IOS and IOS-XE)
+* --password-encryption, -pwd: check the level of encryption of different password, key... for IOS, IOS-XE, IOS-XR, NXOS and EOS.
+* --macro-interfaces, -macro: look for interfaces with macro profile applied. Works for IOS and IOS-XE
 * --file-output FILE, -fo FILE: Write the output to a file in either CSV or JSON format.
 
 #### Examples
 
-* Search for a custom pattern in a specific section of the log files:
+* Search for a custom pattern in a specific section of the log files, as specified in the `INPUT_DATA` of the `.env` file:
 `python search_logs.py`
 * Check for interfaces configured as DHCP clients:
 `python search_logs.py --dhcp-interfaces`
 * Check switchport interfaces for access or non-access configuration:
 `python search_logs.py --switchport-interfaces`
+* Check encryption for passwords, keys...
+`python search_logs.py --password-encryption`
+* Check interfaces with Macro applied
+`python search_logs.py --macro-interfaces`
 * Write the output to a CSV file:
 `python search_logs.py --file-output output.csv`
 * Write the output to a JSON file:
@@ -81,9 +87,8 @@ The script will output the results of the search operation. The output format de
 * If the --file-output option is provided with a .csv file extension, the output will be written to a CSV file.
 * If the --file-output option is provided with a .json file extension, the output will be written to a JSON file.
 
-
 ```note
-For the DHCP and SWITCHPORT option, you do not need the INPUT_DATA variable in the .env file.
+For the DHCP, SWITCHPORT, PASSWORD and MACRO options, you do not need the INPUT_DATA variable in the .env file.
 ```
 
 ## Help

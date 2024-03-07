@@ -7,7 +7,6 @@ with contextlib.suppress(ImportError):
     from rich import print
 
 
-
 def display_password_encryption(result: list):
     """
     Takes the result and display if an interfce is conigured via DHCP or not
@@ -27,10 +26,15 @@ def display_password_encryption(result: list):
 
 
 def get_device_family(ipf_devices, sn):
-    return [device['family'] for device in ipf_devices if device['sn'] == sn][0]
+    return [device["family"] for device in ipf_devices if device["sn"] == sn][0]
+
 
 def find_password_encryption(
-    ipf_client: IPFClient, ipf_devices: list, log_list, prompt_delimiter: str, verbose: bool = False
+    ipf_client: IPFClient,
+    ipf_devices: list,
+    log_list,
+    prompt_delimiter: str,
+    verbose: bool = False,
 ):
     result = []
     for log in log_list:
@@ -44,6 +48,7 @@ def find_password_encryption(
         elif family == "eos":
             result.append(eos_password_encryption(log, prompt_delimiter))
     return result
+
 
 def iosxe_password_encryption(log, prompt_delimiter):
     """
@@ -79,7 +84,7 @@ def iosxe_password_encryption(log, prompt_delimiter):
         matches = pattern.findall(command_section[0])
     else:
         return {log["hostname"]: "No matches found"}
-    
+
     output = []
     skip_next = False
     for i, match in enumerate(matches):
@@ -89,15 +94,20 @@ def iosxe_password_encryption(log, prompt_delimiter):
         # if it ends with a carriage return, it means it's a multi-line match, in which case we will append the next match to it
         if match.endswith("\r"):
             if i < len(matches) - 1:
-                output.append(f'{match.strip()}: {matches[i + 1].strip()}')
+                output.append(f"{match.strip()}: {matches[i + 1].strip()}")
                 # key, value = f'{match.strip()}: {matches[i + 1].strip()}'.split(':')
                 # output.append({key.strip(): value.strip()})
                 skip_next = True
         else:
-            output.append(match.replace(" password", ": password").replace("server group","server group:").strip())
+            output.append(
+                match.replace(" password", ": password")
+                .replace("server group", "server group:")
+                .strip()
+            )
             # key, value = match.replace(" password", ": password").replace("server group","server group:").strip().split(":")
             # output.append({key.strip(): value.strip()})
     return {log["hostname"]: output}
+
 
 def iosxr_password_encryption(log, prompt_delimiter):
     """
@@ -124,7 +134,7 @@ def iosxr_password_encryption(log, prompt_delimiter):
         matches = pattern.findall(command_section[0])
     else:
         return {log["hostname"]: "No matches found"}
-    
+
     output = []
     skip_next = False
     for i, match in enumerate(matches):
@@ -132,7 +142,12 @@ def iosxr_password_encryption(log, prompt_delimiter):
             skip_next = False
             continue
         # if it ends with a carriage return, it means it's a multi-line match, in which case we will append the next match to it
-        for split_item in ["username", "tacacs-server host", "server-private", "key chain"]:
+        for split_item in [
+            "username",
+            "tacacs-server host",
+            "server-private",
+            "key chain",
+        ]:
             if split_item in match:
                 # sometimes key is not configured in which case we need to indicate it's not found:
                 # if matches[i + 1].startswith(" key") or matches[i + 1].startswith(" secret"):
@@ -142,18 +157,23 @@ def iosxr_password_encryption(log, prompt_delimiter):
                 #     match=f'{match.strip()}: key or secret not found'
                 #     skip_next = False
 
-                if re.match(r'^ *key', matches[i + 1]) or re.match(r'^ *secret', matches[i + 1]) or re.match(r'^ *key-string', matches[i + 1]):
-                    output.append(f'{match.strip()}: {matches[i + 1].strip()}')
+                if (
+                    re.match(r"^ *key", matches[i + 1])
+                    or re.match(r"^ *secret", matches[i + 1])
+                    or re.match(r"^ *key-string", matches[i + 1])
+                ):
+                    output.append(f"{match.strip()}: {matches[i + 1].strip()}")
                     skip_next = True
                 else:
-                    match = f'{match.strip()}: key or secret not found'
+                    match = f"{match.strip()}: key or secret not found"
 
-        if not skip_next:        
+        if not skip_next:
             # output.append(match.replace(" password", ": password").replace("secret",": secret").strip())
             output.append(match.strip())
             # key, value = match.replace(" password", ": password").replace("server group","server group:").strip().split(":")
             # output.append({key.strip(): value.strip()})
     return {log["hostname"]: output}
+
 
 def nxos_password_encryption(log, prompt_delimiter):
     """
@@ -183,6 +203,7 @@ def nxos_password_encryption(log, prompt_delimiter):
 
     output = [match.strip() for match in matches]
     return {log["hostname"]: output}
+
 
 def eos_password_encryption(log, prompt_delimiter):
     """
