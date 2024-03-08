@@ -60,7 +60,7 @@ Options:
 * --switchport-interfaces, -sw: Check switchport interfaces to identify access ports (only for IOS and IOS-XE)
 * --password-encryption, -pwd: check the level of encryption of different password, key... for IOS, IOS-XE, IOS-XR, NXOS and EOS.
 * --macro-interfaces, -macro: look for interfaces with macro profile applied. Works for IOS and IOS-XE
-* --file-output FILE, -fo FILE: Write the output to a file in either CSV or JSON format.
+* --file-output FILE, -fo FILE: Write the output to a file in JSON format.
 
 #### Examples
 
@@ -74,8 +74,6 @@ Options:
 `python search_logs.py --password-encryption`
 * Check interfaces with Macro applied
 `python search_logs.py --macro-interfaces`
-* Write the output to a CSV file:
-`python search_logs.py --file-output output.csv`
 * Write the output to a JSON file:
 `python search_logs.py --file-output output.json`
 
@@ -84,7 +82,6 @@ Options:
 The script will output the results of the search operation. The output format depends on the options used:
 
 * If no --file-output option is provided, the output will be printed to the console.
-* If the --file-output option is provided with a .csv file extension, the output will be written to a CSV file.
 * If the --file-output option is provided with a .json file extension, the output will be written to a JSON file.
 
 ```note
