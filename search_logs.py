@@ -91,7 +91,7 @@ def main(
 
     def get_logs_supported_devices(ipf_devices, supported_families):
         # Download log files for matching hostnames
-        print(f"\nDOWNLOADING log files...\n", end="")
+        print(f"\nDOWNLOADING relevant log files, checking {len(ipf_devices)} devices\n", end="")
         log_list = download_logs(logs, ipf_devices, supported_families)
         # Search for specific strings in the log files
         print(f"\nSEARCHING through {len(log_list)} log files")
@@ -168,16 +168,16 @@ def main(
             display_log_compliance(result)
 
     # Write the output to a file, if requested, in CSV or JSON format
-    if file_output and file_output.endswith("csv"):
-        # Write the output to a CSV file
-        import csv
-
-        with open(file_output, "w") as file:
-            writer = csv.DictWriter(file, fieldnames=result[0].keys())
-            writer.writeheader()
-            writer.writerows(result)
-        print(f"\nCSV OUTPUT written to {file_output}")
-    elif file_output:
+    # if file_output and file_output.endswith("csv"):
+    #     # Write the output to a CSV file
+    #     import csv
+    #     with open(file_output, "w") as file:
+    #         writer = csv.DictWriter(file, fieldnames=result[0].keys())
+    #         writer.writeheader()
+    #         writer.writerows(result)
+    #     print(f"\nCSV OUTPUT written to {file_output}")
+    # el
+    if file_output:
         # Write the output to a JSON file
         with open(file_output, "w") as file:
             json.dump(result, file, indent=4)
