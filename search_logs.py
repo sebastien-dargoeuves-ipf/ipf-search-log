@@ -89,6 +89,7 @@ def main(
             sys.exit()
         return json_data
 
+
     def get_logs_supported_devices(ipf_devices, supported_families):
         # Download log files for matching hostnames
         print(
