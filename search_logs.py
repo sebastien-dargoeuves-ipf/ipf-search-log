@@ -9,6 +9,7 @@ we won't look in the config backup, but in the logs
 WARNING: you should make sure the SDK version matches your version of IP Fabric
 """
 
+
 import contextlib
 import json
 import os
@@ -24,10 +25,7 @@ from modules.logs_switchport import (
     search_switchport_logs,
     display_switchport_log_compliance,
 )
-from modules.logs_password_encryption import (
-    find_password_encryption,
-    display_password_encryption,
-)
+from modules.logs_password_encryption import find_password_encryption, display_password_encryption
 from modules.logs_macro_intf import search_interfaces_macro, display_interfaces_macro
 
 with contextlib.suppress(ImportError):
@@ -91,12 +89,12 @@ def main(
 
     def get_logs_supported_devices(ipf_devices, supported_families):
         # Download log files for matching hostnames
-        print(f"\nDOWNLOADING log files...\n", end="")
+        print(f"\nDOWNLOADING relevant log files, checking {len(ipf_devices)} devices\n", end="")
         log_list = download_logs(logs, ipf_devices, supported_families)
         # Search for specific strings in the log files
         print(f"\nSEARCHING through {len(log_list)} log files")
         return log_list
-
+    
     # Load environment variables
     load_dotenv(find_dotenv(), override=True)
     prompt_delimiter = os.getenv("PROMPT_DELIMITER")
@@ -147,17 +145,13 @@ def main(
     elif password_level:
         supported_families = ["ios-xe", "ios", "ios-xr", "nxos", "eos"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
-        result = find_password_encryption(
-            ipf_client, ipf_devices, log_list, prompt_delimiter, verbose
-        )
+        result = find_password_encryption(ipf_client, ipf_devices, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_password_encryption(result)
     elif macro_intf:
         supported_families = ["ios-xe", "ios"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
-        result = search_interfaces_macro(
-            ipf_client, ipf_devices, log_list, prompt_delimiter, verbose
-        )
+        result = search_interfaces_macro(ipf_client, ipf_devices, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_interfaces_macro(result)
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
@@ -168,21 +162,20 @@ def main(
             display_log_compliance(result)
 
     # Write the output to a file, if requested, in CSV or JSON format
-    if file_output and file_output.endswith("csv"):
-        # Write the output to a CSV file
-        import csv
-
-        with open(file_output, "w") as file:
-            writer = csv.DictWriter(file, fieldnames=result[0].keys())
-            writer.writeheader()
-            writer.writerows(result)
-        print(f"\nCSV OUTPUT written to {file_output}")
-    elif file_output:
+    # if file_output and file_output.endswith("csv"):
+    #     # Write the output to a CSV file
+    #     import csv
+    #     with open(file_output, "w") as file:
+    #         writer = csv.DictWriter(file, fieldnames=result[0].keys())
+    #         writer.writeheader()
+    #         writer.writerows(result)
+    #     print(f"\nCSV OUTPUT written to {file_output}")
+    # el
+    if file_output:
         # Write the output to a JSON file
         with open(file_output, "w") as file:
             json.dump(result, file, indent=4)
         print(f"\nJSON OUTPUT written to {file_output}")
-
 
 if __name__ == "__main__":
     app()
