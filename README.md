@@ -52,7 +52,11 @@ INPUT_DATA = '[
 Running the python script will show you what is compliant: `match` string has been found, and what is not compliant.
 
 To run the script, use the following command:
+
+```bash
 python search_logs.py [OPTIONS]
+```
+
 Options:
 
 * --verbose, -v: Enable verbose mode for detailed output.
