@@ -52,7 +52,11 @@ INPUT_DATA = '[
 Running the python script will show you what is compliant: `match` string has been found, and what is not compliant.
 
 To run the script, use the following command:
+
+```bash
 python search_logs.py [OPTIONS]
+```
+
 Options:
 
 * --verbose, -v: Enable verbose mode for detailed output.
@@ -84,9 +88,8 @@ The script will output the results of the search operation. The output format de
 * If no --file-output option is provided, the output will be printed to the console.
 * If the --file-output option is provided with a .json file extension, the output will be written to a JSON file.
 
-```note
-For the DHCP, SWITCHPORT, PASSWORD and MACRO options, you do not need the INPUT_DATA variable in the .env file.
-```
+>[!NOTE]
+>For the DHCP, SWITCHPORT, PASSWORD and MACRO options, you do not need the INPUT_DATA variable in the .env file.
 
 ## Help
 
