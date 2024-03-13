@@ -6,6 +6,7 @@ Set of functions to download log file from IP Fabric and search through those
 import contextlib
 import copy
 import re
+from tqdm import tqdm
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -33,11 +34,11 @@ def download_logs(logs, ipf_devices: list, supported_families: list):
     Function to download the IP Fabric log of provided list of devices
     """
     return_list = []
+    progress_bar = tqdm(total=len(ipf_devices), desc="Downloading logs")
     for host in ipf_devices:
+        progress_bar.update(1)
         if host["family"] not in supported_families:  # , "ios-xr", "nx-os", "eos"]:
-            print("x", end="")
             continue
-        print(".", end="")
         # Get the log file
         if dev_log := logs.get_text_log(host):
             return_list.append(

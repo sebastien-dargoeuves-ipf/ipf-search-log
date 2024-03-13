@@ -82,11 +82,28 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
     command_regex = re.compile(command_pattern, re.MULTILINE)
 
     if command_section := command_regex.search(log["text"]):
-        pattern = re.compile(input_string["match"])
-        matches = pattern.findall(command_section[0])
+        split_commands = command_section[0].split('!\r\n')  # Split the commands based on '!\r\n' delimiter
+        interface_blocks = [block for block in split_commands if block.startswith('interface')]  # Filter only 
+
+        # Initialize a list to store (interface name, description) pairs
+        interface_macro_pairs = []
+
+        # Iterate through each interface block
+        for block in interface_blocks:
+            if 'macro description' in block:
+                lines = block.split('\r\n')
+                interface_name = lines[0].split('interface ')[1].strip()
+                for line in lines:
+                    if 'macro description' in line:
+                        description = line.split('macro description ')[1]
+                        interface_macro_pairs.append({interface_name: description})
+                        break  # Exit loop when the first 'macro description' line is found
+
+        # pattern = re.compile(input_string["match"])
+        # matches = pattern.findall(command_section[0])
     else:
         return {log["hostname"]: "No matches found"}
 
-    output = [{interfaces: macro} for interfaces, macro in matches]
+    # output = [{interfaces: macro} for interfaces, macro in matches]
     # output.append({"family": family})
-    return {log["hostname"]: output}
+    return {log["hostname"]: interface_macro_pairs}
