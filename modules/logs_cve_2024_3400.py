@@ -29,6 +29,9 @@ def display_cve_2024_3400(result: list):
 def get_device_family(ipf_devices, sn):
     return [device["family"] for device in ipf_devices if device["sn"] == sn][0]
 
+def get_os_version(ipf_devices, sn):
+    return [device["version"] for device in ipf_devices if device["sn"] == sn][0]
+
 
 def search_cve_2024_3400(
     ipf_client: IPFClient,
@@ -40,12 +43,13 @@ def search_cve_2024_3400(
     result = []
     for log in log_list:
         family = get_device_family(ipf_devices, log["sn"])
+        version = get_os_version(ipf_devices, log["sn"])
         if family in ["pan-os"]:
-            result.append(pan_os_config_cve_2024_3400(log, prompt_delimiter, family))
+            result.append(pan_os_config_cve_2024_3400(log, prompt_delimiter, version))
     return result
 
 
-def pan_os_config_cve_2024_3400(log, prompt_delimiter, family):
+def pan_os_config_cve_2024_3400(log, prompt_delimiter, version):
     """
     Searches for specific patterns in a log text and extracts relevant information.
 
@@ -68,7 +72,8 @@ def pan_os_config_cve_2024_3400(log, prompt_delimiter, family):
 
     input_string = {
         "command": "show config merged",
-        "match": r"(global-protect[^{}*]*\{[^{}]*\})|(device-telemetry \{[^{}]*\})|(telemetry\senable;)"
+        "match": r"global-protect.*enable;|telemetry\senable;"
+        # "match": r"(global-protect[^{}*]*\{[^{}]*\})|(device-telemetry \{[^{}]*\})|(telemetry\senable;)"
     }
     # we search and extract the output for the show ip interface command
     hostname_altered = log["hostname"].split("/")[0] if "/" in log["hostname"] else log["hostname"]
@@ -81,13 +86,9 @@ def pan_os_config_cve_2024_3400(log, prompt_delimiter, family):
     else:
         return {log["hostname"]: "No matches found"}
 
-    output = []
+    output = [version]
     skip_next = False
     for i, match in enumerate(matches):
-        for m in match:
-            if m:
-                match = m
-                break
         if skip_next:
             skip_next = False
             continue
@@ -99,11 +100,5 @@ def pan_os_config_cve_2024_3400(log, prompt_delimiter, family):
                 # output.append({key.strip(): value.strip()})
                 skip_next = True
         else:
-            output.append(
-                match.replace(" password", ": password")
-                .replace("server group", "server group:")
-                .strip()
-            )
-            # key, value = match.replace(" password", ": password").replace("server group","server group:").strip().split(":")
-            # output.append({key.strip(): value.strip()})
+            output.append(match.strip())
     return {log["hostname"]: output}
