@@ -29,6 +29,7 @@ from modules.logs_password_encryption import (
     display_password_encryption,
 )
 from modules.logs_macro_intf import search_interfaces_macro, display_interfaces_macro
+from modules.logs_cve_2024_3400 import search_cve_2024_3400, display_cve_2024_3400
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -62,6 +63,12 @@ def main(
         "--macro-interfaces",
         "-macro",
         help="Check if a Macro is assigned to the interface",
+    ),
+    cve_2024_3400: bool = typer.Option(
+        False,
+        "--cve-2024-3400",
+        "-cve3400",
+        help="Check for Palo Alto CVE-2024-3400 vulnerabilities (https://security.paloaltonetworks.com/CVE-2024-3400)",
     ),
     file_output: str = typer.Option(
         None,
@@ -113,7 +120,7 @@ def main(
         verify=(os.getenv("IPF_VERIFY", "False") == "True"),
     )
 
-    logs = DeviceConfigs(ipf_client)
+    logs = DeviceConfigs(client=ipf_client)
     ipf_devices = ipf_client.inventory.devices.all(filters=device_filter)
     # Call the DHCP function, if the option is selected
     if dhcp_intf:
@@ -163,6 +170,15 @@ def main(
         )
         if not file_output:
             display_interfaces_macro(result)
+    elif cve_2024_3400:
+        supported_families = ["pan-os"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
+        prompt_delimiter = ">"
+        result = search_cve_2024_3400(
+            ipf_client=ipf_client, ipf_devices=ipf_devices, log_list=log_list, prompt_delimiter=prompt_delimiter, verbose=verbose
+        )
+        if not file_output:
+            display_cve_2024_3400(result)
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))
