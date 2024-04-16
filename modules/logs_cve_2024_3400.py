@@ -72,7 +72,11 @@ def pan_os_config_cve_2024_3400(log, prompt_delimiter, version):
 
     input_string = {
         "command": "show config merged",
+<<<<<<< HEAD
         "match": r"global-protect.*enable;"
+=======
+        "match": r"global-protect.*enable;|telemetry\senable;"
+>>>>>>> 396ed35 (cve3400 1st draft)
         # "match": r"(global-protect[^{}*]*\{[^{}]*\})|(device-telemetry \{[^{}]*\})|(telemetry\senable;)"
     }
     # we search and extract the output for the show ip interface command
