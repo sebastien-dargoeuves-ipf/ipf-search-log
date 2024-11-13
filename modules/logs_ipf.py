@@ -1,11 +1,11 @@
-"""
-Set of functions to download log file from IP Fabric and search through those
+"""Set of functions to download log file from IP Fabric and search through those
 2022-11 - version 1.0
 """
 
 import contextlib
 import copy
 import re
+
 from tqdm import tqdm
 
 with contextlib.suppress(ImportError):
@@ -13,8 +13,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_log_compliance(result: list):
-    """
-    Takes the result and display if an interfce is conigured via DHCP or not
+    """Takes the result and display if an interfce is conigured via DHCP or not
     """
     result_ok = []
     result_nok = []
@@ -30,8 +29,7 @@ def display_log_compliance(result: list):
 
 
 def download_logs(logs, ipf_devices: list, supported_families: list):
-    """
-    Function to download the IP Fabric log of provided list of devices
+    """Function to download the IP Fabric log of provided list of devices
     """
     return_list = []
     progress_bar = tqdm(total=len(ipf_devices), desc="Downloading logs")
@@ -43,12 +41,12 @@ def download_logs(logs, ipf_devices: list, supported_families: list):
         if dev_log := logs.get_text_log(host):
             return_list.append(
                 {
-                    **{
+
                         "hostname": host["hostname"],
                         "sn": host["sn"],
-                        "text": dev_log,
-                    },
-                }
+                        "text": dev_log
+                    ,
+                },
             )
     return return_list
 
@@ -56,12 +54,14 @@ def download_logs(logs, ipf_devices: list, supported_families: list):
 def search_logs(input_strings, log_list, prompt_delimiter: str, verbose: bool = False):
     # sourcery skip: low-code-quality
     """A function to search for a specific list of string within the list of log files.
-    Attributes:
+
+    Attributes
     ----------
     input_strings: list of strings
         the list of strings to search for
     log_list: list of objects
         object items containing hostnames, log files, ..
+
     """
     result = []
     for log in log_list:
@@ -79,18 +79,14 @@ def search_logs(input_strings, log_list, prompt_delimiter: str, verbose: bool = 
                         pattern = rf'(^{item["section"]}.*$[\n\r]*(?:^\s.*$[\n\r]*)*)'
                         section_regex = re.compile(pattern, re.MULTILINE)
                         if section := section_regex.search(command_section[0]):
-                            present_in_log = (
-                                "YES" if item["match"] in section[0] else "NO"
-                            )
+                            present_in_log = "YES" if item["match"] in section[0] else "NO"
                             if verbose:
                                 item["matched_section"] = section[0]
                         else:
                             present_in_log = "SECTION NOT FOUND"
                     else:
                         present_in_log = (
-                            "YES - NO SECTION"
-                            if item["match"] in command_section[0]
-                            else "NO - NO SECTION"
+                            "YES - NO SECTION" if item["match"] in command_section[0] else "NO - NO SECTION"
                         )
                         if verbose:
                             item["matched_section"] = command_section[0]
