@@ -157,8 +157,46 @@ def nxos_temperature(log, prompt_delimiter):
                     },
                 )
 
-    # print(f'host: {log["hostname"]}\n{temperatures}')
-    return {log["hostname"]: temperatures}
+    result = {log["hostname"]: temperatures}
+
+    # If the nexus has FEX, we need to extract the FEX temperature as well
+    input_string = {
+        "command": "show environment fex all",
+        "fex_pattern": r"Temperature Fex (\d+):([\s\S]*?)(?=Fan Fex|$)",
+        "sensor_pattern": r"(?P<module>\d+)\s+(?P<sensor>\w+-\w+)\s+(?P<majorThresh>\d+)\s+(?P<minorThresh>\d+)\s+(?P<curTemp>\d+)\s+(?P<status>\w+)"
+    }
+
+    # we search and extract the output for the show ip interface command
+    command_pattern = rf'({log["hostname"]}{prompt_delimiter}\s*{input_string["command"]}.*?[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
+    command_regex = re.compile(command_pattern, re.MULTILINE)
+    if not (command_section := command_regex.search(full_logs)):
+        return {log["hostname"]: "No matches found"}
+    command_section = command_section[0].replace("\r\n", "\n")
+
+    # Find all FEX sections
+    fex_matches = re.finditer(input_string["fex_pattern"], command_section, re.DOTALL)
+
+    for fex_match in fex_matches:
+        fex_number = fex_match.group(1)
+        sensor_data_block = fex_match.group(2)
+
+        # Find all sensor matches in the current FEX block
+        sensor_matches = re.finditer(input_string["sensor_pattern"], sensor_data_block)
+        # Prepare the list for the current FEX
+        result[f"{log['hostname']}-FEX{fex_number}"] = []
+        for match in sensor_matches:
+            sensor_data = {
+                'module': match.group('module'),
+                'sensor': match.group('sensor'),
+                'majorThresh': match.group('majorThresh'),
+                'minorThresh': match.group('minorThresh'),
+                'curTemp': match.group('curTemp'),
+                'status': match.group('status')
+            }
+            result[f"{log['hostname']}-FEX{fex_number}"].append(sensor_data)
+
+
+    return result
 
 def iosxe_temperature(log, prompt_delimiter):
     """Searches for specific patterns in a log text and extracts relevant information.
@@ -198,22 +236,3 @@ def iosxe_temperature(log, prompt_delimiter):
     
     return temperatures
 
-    # Parse each temperature line into a structured format
-    temp_lines = re.findall(input_string["match"], command_section, re.MULTILINE)
-    temperatures = []
-    for line in temp_lines:
-        # Split the line into components
-        parts = line.split()
-        
-        # Ensure we have enough parts to parse
-        if len(parts) >= 5:
-            from ipdb import set_trace as debug; debug()
-            temperatures.append({
-                'sensor': ' '.join(parts[1:3]).strip(':'),  # Combine "Temp:" and sensor name
-                'location': parts[3],
-                'state': parts[4],
-                'reading': parts[5] if len(parts) > 5 else None
-            })
-
-    # print(f'host: {log["hostname"]}\n{temperatures}')
-    return {log["hostname"]: temperatures}
