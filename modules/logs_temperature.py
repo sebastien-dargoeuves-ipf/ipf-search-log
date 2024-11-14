@@ -42,7 +42,7 @@ def find_temperature(
             result.append(iosxe_temperature(log, prompt_delimiter))
         elif family == "ios-xr":
             result.append(iosxr_temperature(log, prompt_delimiter))
-        elif family == "nx-os":
+        elif family in ["nx-os", "aci"]:
             result.append(nxos_temperature(log, prompt_delimiter))
         # elif family == "junos":
         #     result.append(junos_temperature(log, prompt_delimiter))
@@ -131,7 +131,7 @@ def nxos_temperature(log, prompt_delimiter):
     """
     input_string = {
         "command": "show environment",
-        "match": r"Temperature\n-+\nModule\s+Sensor\s+MajorThresh\s+MinorThres\s+CurTemp\s+Status\n\s*\(Celsius\)\s*\(Celsius\)\s*\(Celsius\)\s*\n-+\n(.*?)\n\n",
+        "match": r"Temperature:?\n-+\nModule\s+Sensor\s+MajorThresh\s+MinorThres\s+CurTemp\s+Status\n\s*\(Celsius\)\s*\(Celsius\)\s*\(Celsius\)\s*\n-+\n(.*?)(?:\r|\n{2}|\n$)",
     }
     full_logs = log["text"].replace("\x07", "")
     # we search and extract the output for the show ip interface command
@@ -139,9 +139,9 @@ def nxos_temperature(log, prompt_delimiter):
     command_regex = re.compile(command_pattern, re.MULTILINE)
     if not (command_section := command_regex.search(full_logs)):
         return {log["hostname"]: "No matches found"}
+    from ipdb import set_trace as debug; debug()
     command_section = command_section[0].replace("\r\n", "\n")
     temperatures = []
-
     if temp_match := re.search(input_string["match"], command_section, re.DOTALL):
         for line in temp_match[1].strip().split("\n"):
             parts = line.split()
@@ -162,7 +162,7 @@ def nxos_temperature(log, prompt_delimiter):
     # If the nexus has FEX, we need to extract the FEX temperature as well
     input_string = {
         "command": "show environment fex all",
-        "fex_pattern": r"Temperature Fex (\d+):([\s\S]*?)(?=Fan Fex|$)",
+        "fex_pattern": r"Temperature Fex (\d+):([\s\S]*?)(?=Fan Fex:?\s\d+:|$)",
         "sensor_pattern": r"(?P<module>\d+)\s+(?P<sensor>\w+-\w+)\s+(?P<majorThresh>\d+)\s+(?P<minorThresh>\d+)\s+(?P<curTemp>\d+)\s+(?P<status>\w+)"
     }
 
@@ -170,6 +170,7 @@ def nxos_temperature(log, prompt_delimiter):
     command_pattern = rf'({log["hostname"]}{prompt_delimiter}\s*{input_string["command"]}.*?[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
     command_regex = re.compile(command_pattern, re.MULTILINE)
     if not (command_section := command_regex.search(full_logs)):
+        print("command not found")
         return {log["hostname"]: "No matches found"}
     command_section = command_section[0].replace("\r\n", "\n")
 

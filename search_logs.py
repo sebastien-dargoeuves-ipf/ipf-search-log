@@ -184,7 +184,7 @@ def main(
             display_cve_2024_3400(result)
     elif temperature:
         # supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "aci", "juniper", "arubasw"]
-        supported_families = ["nx-os", "ios-xe"]
+        supported_families = ["nx-os", "aci", "ios-xe"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
         result = find_temperature(
             ipf_client=ipf_client,
