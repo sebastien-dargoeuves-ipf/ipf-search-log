@@ -92,8 +92,7 @@ def main(
     """
 
     def valid_json(raw_data: str):
-        """Confirm the env variable is a valid JSON. Return the json if OK, or exit.
-        """
+        """Confirm the env variable is a valid JSON. Return the json if OK, or exit."""
         if not raw_data:
             print("##ERR## The `INPUT_DATA` is not in the .env file.")
             sys.exit()
@@ -147,7 +146,8 @@ def main(
                 f" and matching with all {ipf_client.technology.interfaces.switchport.count(filters=device_filter)} interfaces",
             )
             switchport_interfaces = ipf_client.technology.interfaces.switchport.all(
-                columns=["hostname", "intName"], filters=device_filter,
+                columns=["hostname", "intName"],
+                filters=device_filter,
             )
         # Otherwise, we get the list of all switchport interfaces, as we can't filter.
         else:
@@ -184,10 +184,9 @@ def main(
             display_cve_2024_3400(result)
     elif temperature:
         # supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "aci", "juniper", "arubasw"]
-        supported_families = ["nx-os", "aci", "ios-xe"]
+        supported_families = ["nx-os", "aci", "ios-xe", "junos"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
         result = find_temperature(
-            ipf_client=ipf_client,
             ipf_devices=ipf_devices,
             log_list=log_list,
             prompt_delimiter=prompt_delimiter,

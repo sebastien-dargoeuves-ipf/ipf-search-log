@@ -13,8 +13,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_log_compliance(result: list):
-    """Takes the result and display if an interfce is conigured via DHCP or not
-    """
+    """Takes the result and display if an interfce is conigured via DHCP or not"""
     result_ok = []
     result_nok = []
     for check in result:
@@ -29,8 +28,7 @@ def display_log_compliance(result: list):
 
 
 def download_logs(logs, ipf_devices: list, supported_families: list):
-    """Function to download the IP Fabric log of provided list of devices
-    """
+    """Function to download the IP Fabric log of provided list of devices"""
     return_list = []
     progress_bar = tqdm(total=len(ipf_devices), desc="Downloading logs")
     for host in ipf_devices:
@@ -41,11 +39,9 @@ def download_logs(logs, ipf_devices: list, supported_families: list):
         if dev_log := logs.get_text_log(host):
             return_list.append(
                 {
-
-                        "hostname": host["hostname"],
-                        "sn": host["sn"],
-                        "text": dev_log
-                    ,
+                    "hostname": host["hostname"],
+                    "sn": host["sn"],
+                    "text": dev_log,
                 },
             )
     return return_list

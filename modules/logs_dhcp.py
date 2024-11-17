@@ -12,8 +12,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_dhcp_interfaces(result: list):
-    """Takes the result and display if an interfce is conigured via DHCP or not
-    """
+    """Takes the result and display if an interfce is conigured via DHCP or not"""
     result_ok = []
     result_nok = []
     for check in result:
@@ -40,8 +39,7 @@ def search_dhcp_interfaces(ipf_client: IPFClient, log_list, prompt_delimiter: st
     """
 
     def get_device_interfaces(ipf_client: IPFClient, sn: str):
-        """Return the list of relevant interfaces -> assigned with an IP Address
-        """
+        """Return the list of relevant interfaces -> assigned with an IP Address"""
         filter_interfaces_with_ip = {"and": [{"primaryIp": ["empty", False]}, {"sn": ["eq", sn]}]}
         return ipf_client.inventory.interfaces.all(filters=filter_interfaces_with_ip)
 

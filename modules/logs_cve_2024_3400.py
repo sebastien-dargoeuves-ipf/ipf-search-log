@@ -8,8 +8,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_cve_2024_3400(result: list):
-    """Print the result
-    """
+    """Print the result"""
     new_result = [r for r in result if len(list(r.values())[0]) != 0]
     # result_ok = []
     # result_nok = []

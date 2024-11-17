@@ -19,10 +19,8 @@ with contextlib.suppress(ImportError):
     from rich import print
 
 
-
 def display_switchport_log_compliance(result: list):
-    """Takes the result and display if an interfce is conigured via DHCP or not
-    """
+    """Takes the result and display if an interfce is conigured via DHCP or not"""
     result_ok = []
     result_nok = []
     for check in result:
