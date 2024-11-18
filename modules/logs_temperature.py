@@ -44,13 +44,21 @@ def find_temperature(
         family = get_device_family(ipf_devices, log["sn"])
         if family == "ios-xe":
             result.extend(iosxe_temperature(log=log, prompt_delimiter=prompt_delimiter))
-        # elif family == "ios-xr":
-        #     result.extend(iosxr_temperature(log=log, prompt_delimiter=prompt_delimiter))
+        # IOS-XR not available as IPF does not execute the right command
         elif family in ["nx-os", "aci"]:
             result.extend(nxos_temperature(log=log, prompt_delimiter=prompt_delimiter))
         elif family == "junos":
             result.extend(junos_temperature(log, prompt_delimiter))
-    save_to_csv(result, "temperature")
+    try:
+        save_to_csv(result, "temperature")
+    except Exception as e:
+        print(f"Error saving to CSV: {e}")
+        # save as a json file
+        with open("temperature.json", "w") as f:
+            json_result = str(result).replace("'", '"')
+            f.write(json_result)
+        print("Saved as JSON file")
+    
     return result
 
 
@@ -134,39 +142,47 @@ def nxos_temperature(log, prompt_delimiter: str = "#"):
         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
 
     """
-
     input_string = {
         "command": "show environment",
         "pattern": r"Temperature:?\n-+\nModule\s+Sensor\s+MajorThresh\s+MinorThres\s+CurTemp\s+Status\n\s*\(Celsius\)\s*\(Celsius\)\s*\(Celsius\)\s*\n-+\n(.*?)(?:\r|\n{2}|\n$)",
     }
     full_logs = log["text"].replace("\x07", "")
-
+    device_hostname = log["hostname"].split(".")[0]
     # we search and extract the output for the specific command
     command_pattern = (
-        rf'({log["hostname"]}{prompt_delimiter}\s*{input_string["command"]}.*?(?={log["hostname"]}{prompt_delimiter}))'
+        rf'({device_hostname}\S*{prompt_delimiter}\s*{input_string["command"]}.*?(?={device_hostname}\S*{prompt_delimiter}))'
     )
     command_regex = re.compile(command_pattern, re.DOTALL)
 
     if not (command_section := command_regex.search(full_logs)):
-        return {log["hostname"]: "No matches found"}
-    command_section = command_section[0].replace("\r\n", "\n")
-
+        print(f"command not found for {device_hostname}")
+        return [{
+            "device": device_hostname,
+            "module": "not found",
+            "sensor": "not found",
+            "location": "not found",
+            "curTemp": "not found",
+            "status": "not found",
+        }]
+    
     # Find all temperature sections
+    command_section = command_section[0].replace("\r\n", "\n")
+    regex_split = re.compile(r'\s{2,}')
     temperatures_result = []
     if temp_match := re.search(input_string["pattern"], command_section, re.DOTALL):
         for line in temp_match[1].strip().split("\n"):
-            parts = line.split()
+            # sometimes the curTemp is not a digit but a string, due to some sensor name in ACI
+            # the regex would need improving, but in the meantime, the workaround below seems ok
+            parts = regex_split.split(line)
             if len(parts) >= 6:
                 temperatures_result.append(
                     {
-                        "device": log["hostname"],
+                        "device": device_hostname,
                         "module": parts[0],
                         "sensor": parts[1],
                         "location": "",
-                        "majorThresh": parts[2],
-                        "minorThresh": parts[3],
-                        "curTemp": parts[4],
-                        "status": parts[5],
+                        "curTemp": parts[4] if parts[4].isdigit() else parts[3],
+                        "status": parts[5] if parts[4].isdigit() else parts[4],
                     },
                 )
 
@@ -178,11 +194,18 @@ def nxos_temperature(log, prompt_delimiter: str = "#"):
     }
 
     # we search and extract the output for the specific command
-    command_pattern = rf'({log["hostname"]}{prompt_delimiter}\s*{input_string["command"]}.*?[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
+    command_pattern = rf'({device_hostname}\S*{prompt_delimiter}\s*{input_string["command"]}.*?[\s\S]*?(?={device_hostname}\S*{prompt_delimiter}))'
     command_regex = re.compile(command_pattern, re.MULTILINE)
     if not (command_section := command_regex.search(full_logs)):
-        print("command not found")
-        return {log["hostname"]: "No matches found"}
+        print(f"command not found for {device_hostname}")
+        return [{
+            "device": device_hostname,
+            "module": "not found",
+            "sensor": "not found",
+            "location": "not found",
+            "curTemp": "not found",
+            "status": "not found",
+        }]
     command_section = command_section[0].replace("\r\n", "\n")
 
     # Find all FEX sections
@@ -198,18 +221,15 @@ def nxos_temperature(log, prompt_delimiter: str = "#"):
         # result[f"{log['hostname']}-FEX{fex_number}"] = []
         for match in sensor_matches:
             sensor_data = {
-                "device": f"{log['hostname']}_FEX{fex_number}",
+                "device": f"{device_hostname}_FEX{fex_number}",
                 "module": match.group("module"),
                 "sensor": match.group("sensor"),
                 "location": "",
-                "majorThresh": match.group("majorThresh"),
-                "minorThresh": match.group("minorThresh"),
                 "curTemp": match.group("curTemp"),
                 "status": match.group("status"),
             }
             # result[f"{log['hostname']}-FEX{fex_number}"].append(sensor_data)
             temperatures_result.append(sensor_data)
-
     return temperatures_result
 
 
@@ -249,8 +269,6 @@ def junos_temperature(log, prompt_delimiter: str = "#"):
             "device": log["hostname"],
             "sensor": match.group("sensor").strip(),
             "location": match.group("location").strip(),
-            "majorThresh": "",
-            "minorThresh": "",
             "curTemp": match.group("curTemp").strip(),
             "status": match.group("status").strip(),
         }
@@ -290,8 +308,6 @@ def iosxe_temperature(log, prompt_delimiter: str = "#"):
             "device": log["hostname"],
             "sensor": match.group("sensor").strip(),
             "location": match.group("location").strip(),
-            "majorThresh": "",
-            "minorThresh": "",
             "curTemp": match.group("curTemp").strip(),
             "status": match.group("status").strip(),
         }
@@ -308,8 +324,6 @@ def iosxe_temperature(log, prompt_delimiter: str = "#"):
                 "device": log["hostname"],
                 "sensor": match.group("sensor").strip(),
                 "location": match.group("location").strip(),
-                "majorThresh": match.group("majorThresh").strip(),
-                "minorThresh": match.group("minorThresh").strip(),
                 "curTemp": match.group("curTemp").strip(),
                 "status": match.group("status").strip(),
             }
@@ -317,3 +331,45 @@ def iosxe_temperature(log, prompt_delimiter: str = "#"):
         ]
 
     return result
+
+# def ios_temperature(log, prompt_delimiter: str = "#"):
+#     """Searches for specific patterns in a log text and extracts relevant information.
+
+#     Args:
+#     ----
+#         log (dict): The log information containing the hostname and text.
+#         prompt_delimiter (str): The delimiter used in the command prompt.
+
+#     Returns:
+#     -------
+#         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
+
+#     """
+#     # Not implemented, it's currently a copy/paste of the iosxr regex, there are a lot of different output depending on the model with IOS.
+
+#     result = []
+#     input_string = {
+#         "command": "show env all",
+#         "match": r"Temp: (?P<sensor>[\w\s]+?)(?:\s{2,})(?P<location>\w+)\s+(?P<status>[\w\s]+)\s+(?P<curTemp>\d+)\s+Celsius",
+#     }
+#     full_logs = log["text"].replace("\x07", "")
+#     # we search and extract the output for the show ip interface command
+#     command_pattern = rf'({log["hostname"]}{prompt_delimiter}\s*{input_string["command"]}.*?[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
+#     command_regex = re.compile(command_pattern, re.MULTILINE)
+#     if not (command_section := command_regex.search(full_logs)):
+#         return {log["hostname"]: "No matches found"}
+#     command_section = command_section[0].replace("\r\n", "\n")
+
+#     pattern = re.compile(input_string["match"], re.MULTILINE)
+#     result = [
+#         {
+#             "device": log["hostname"],
+#             "sensor": match.group("sensor").strip(),
+#             "location": match.group("location").strip(),
+#             "curTemp": match.group("curTemp").strip(),
+#             "status": match.group("status").strip(),
+#         }
+#         for match in pattern.finditer(command_section)
+#     ]
+
+#     return result

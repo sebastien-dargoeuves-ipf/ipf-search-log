@@ -125,6 +125,7 @@ def main(
         token=os.getenv("IPF_TOKEN"),
         snapshot_id=os.getenv("IPF_SNAPSHOT", "$last"),
         verify=(os.getenv("IPF_VERIFY", "False") == "True"),
+        timeout=os.getenv("IPF_TIMEOUT", 60)
     )
 
     logs = DeviceConfigs(client=ipf_client)
@@ -192,8 +193,7 @@ def main(
             prompt_delimiter=prompt_delimiter,
             verbose=verbose,
         )
-        if not file_output:
-            display_temperature(result)
+        # not displaying the data in console, due to its size. Saved as temperature.csv.
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))
