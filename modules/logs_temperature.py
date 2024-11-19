@@ -333,43 +333,4 @@ def iosxe_temperature(log, prompt_delimiter: str = "#"):
     return result
 
 # def ios_temperature(log, prompt_delimiter: str = "#"):
-#     """Searches for specific patterns in a log text and extracts relevant information.
-
-#     Args:
-#     ----
-#         log (dict): The log information containing the hostname and text.
-#         prompt_delimiter (str): The delimiter used in the command prompt.
-
-#     Returns:
-#     -------
-#         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
-
-#     """
 #     # Not implemented, it's currently a copy/paste of the iosxr regex, there are a lot of different output depending on the model with IOS.
-
-#     result = []
-#     input_string = {
-#         "command": "show env all",
-#         "match": r"Temp: (?P<sensor>[\w\s]+?)(?:\s{2,})(?P<location>\w+)\s+(?P<status>[\w\s]+)\s+(?P<curTemp>\d+)\s+Celsius",
-#     }
-#     full_logs = log["text"].replace("\x07", "")
-#     # we search and extract the output for the show ip interface command
-#     command_pattern = rf'({log["hostname"]}{prompt_delimiter}\s*{input_string["command"]}.*?[\s\S]*?(?={log["hostname"]}{prompt_delimiter}))'
-#     command_regex = re.compile(command_pattern, re.MULTILINE)
-#     if not (command_section := command_regex.search(full_logs)):
-#         return {log["hostname"]: "No matches found"}
-#     command_section = command_section[0].replace("\r\n", "\n")
-
-#     pattern = re.compile(input_string["match"], re.MULTILINE)
-#     result = [
-#         {
-#             "device": log["hostname"],
-#             "sensor": match.group("sensor").strip(),
-#             "location": match.group("location").strip(),
-#             "curTemp": match.group("curTemp").strip(),
-#             "status": match.group("status").strip(),
-#         }
-#         for match in pattern.finditer(command_section)
-#     ]
-
-#     return result
