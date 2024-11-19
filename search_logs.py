@@ -30,10 +30,7 @@ from modules.logs_switchport import (
     display_switchport_log_compliance,
     search_switchport_logs,
 )
-from modules.logs_temperature import (
-    display_temperature,
-    find_temperature,
-)
+from modules.logs_temperature import find_temperature
 
 with contextlib.suppress(ImportError):
     from rich import print
