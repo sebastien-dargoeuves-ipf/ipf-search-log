@@ -1,5 +1,4 @@
-"""
-General Python3 script for IP Fabric's API to get the list of available
+"""General Python3 script for IP Fabric's API to get the list of available
 log files and searches the specific input strings in it, prints the output.
 
 2022-11 - version 1.0
@@ -15,21 +14,23 @@ import os
 import sys
 
 import typer
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from ipfabric import IPFClient
 from ipfabric.tools import DeviceConfigs
-from modules.logs_dhcp import search_dhcp_interfaces, display_dhcp_interfaces
-from modules.logs_ipf import download_logs, search_logs, display_log_compliance
-from modules.logs_switchport import (
-    search_switchport_logs,
-    display_switchport_log_compliance,
-)
+
+from modules.logs_cve_2024_3400 import display_cve_2024_3400, search_cve_2024_3400
+from modules.logs_dhcp import display_dhcp_interfaces, search_dhcp_interfaces
+from modules.logs_ipf import display_log_compliance, download_logs, search_logs
+from modules.logs_macro_intf import display_interfaces_macro, search_interfaces_macro
 from modules.logs_password_encryption import (
-    find_password_encryption,
     display_password_encryption,
+    find_password_encryption,
 )
-from modules.logs_macro_intf import search_interfaces_macro, display_interfaces_macro
-from modules.logs_cve_2024_3400 import search_cve_2024_3400, display_cve_2024_3400
+from modules.logs_switchport import (
+    display_switchport_log_compliance,
+    search_switchport_logs,
+)
+from modules.logs_temperature import find_temperature
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -64,6 +65,12 @@ def main(
         "-macro",
         help="Check if a Macro is assigned to the interface",
     ),
+    temperature: bool = typer.Option(
+        False,
+        "--temperature",
+        "-temp",
+        help="Check the temperatures of the different modules",
+    ),
     cve_2024_3400: bool = typer.Option(
         False,
         "--cve-2024-3400",
@@ -77,15 +84,12 @@ def main(
         help="Write the output to a file",
     ),
 ):
-    """
-    Script to look for a pattern, in a section, for a specific command output
+    """Script to look for a pattern, in a section, for a specific command output
     in the log file of IP Fabric
     """
 
     def valid_json(raw_data: str):
-        """
-        Confirm the env variable is a valid JSON. Return the json if OK, or exit.
-        """
+        """Confirm the env variable is a valid JSON. Return the json if OK, or exit."""
         if not raw_data:
             print("##ERR## The `INPUT_DATA` is not in the .env file.")
             sys.exit()
@@ -118,67 +122,75 @@ def main(
         token=os.getenv("IPF_TOKEN"),
         snapshot_id=os.getenv("IPF_SNAPSHOT", "$last"),
         verify=(os.getenv("IPF_VERIFY", "False") == "True"),
+        timeout=os.getenv("IPF_TIMEOUT", 60)
     )
 
     logs = DeviceConfigs(client=ipf_client)
     ipf_devices = ipf_client.inventory.devices.all(filters=device_filter)
     # Call the DHCP function, if the option is selected
     if dhcp_intf:
-        supported_families = ["ios-xe", "ios", "ios-xr", "nxos"]
+        supported_families = ["ios-xe", "ios", "ios-xr", "nx-os"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
         result = search_dhcp_interfaces(ipf_client, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_dhcp_interfaces(result)
     # Call the switchport function, if the option is selected
     elif switchport_intf:
-        supported_families = ["ios-xe", "ios", "ios-xr", "nxos"]
+        supported_families = ["ios-xe", "ios", "ios-xr", "nx-os"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
         # Get the list of switchport interfaces filtered by the device_filter if it's based on hostname
         if "hostname" in device_filter.keys():
             print(
-                f" and matching with all {ipf_client.technology.interfaces.switchport.count(filters=device_filter)} interfaces"
+                f" and matching with all {ipf_client.technology.interfaces.switchport.count(filters=device_filter)} interfaces",
             )
             switchport_interfaces = ipf_client.technology.interfaces.switchport.all(
-                columns=["hostname", "intName"], filters=device_filter
+                columns=["hostname", "intName"],
+                filters=device_filter,
             )
         # Otherwise, we get the list of all switchport interfaces, as we can't filter.
         else:
-            print(
-                f" and matching with all {ipf_client.technology.interfaces.switchport.count()} interfaces"
-            )
+            print(f" and matching with all {ipf_client.technology.interfaces.switchport.count()} interfaces")
             switchport_interfaces = ipf_client.technology.interfaces.switchport.all(
-                columns=["hostname", "intName"]
+                columns=["hostname", "intName"],
             )  # ,filters=device_filter)
-        result = search_switchport_logs(
-            log_list, prompt_delimiter, switchport_interfaces, verbose
-        )
+        result = search_switchport_logs(log_list, prompt_delimiter, switchport_interfaces, verbose)
         if not file_output:
             display_switchport_log_compliance(result)
     elif password_level:
-        supported_families = ["ios-xe", "ios", "ios-xr", "nxos", "eos"]
+        supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "eos"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
-        result = find_password_encryption(
-            ipf_client, ipf_devices, log_list, prompt_delimiter, verbose
-        )
+        result = find_password_encryption(ipf_client, ipf_devices, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_password_encryption(result)
     elif macro_intf:
         supported_families = ["ios-xe", "ios"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
-        result = search_interfaces_macro(
-            ipf_client, ipf_devices, log_list, prompt_delimiter, verbose
-        )
+        result = search_interfaces_macro(ipf_client, ipf_devices, log_list, prompt_delimiter, verbose)
         if not file_output:
             display_interfaces_macro(result)
     elif cve_2024_3400:
         supported_families = ["pan-os"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
-        prompt_delimiter = ">"
         result = search_cve_2024_3400(
-            ipf_client=ipf_client, ipf_devices=ipf_devices, log_list=log_list, prompt_delimiter=prompt_delimiter, verbose=verbose
+            ipf_client=ipf_client,
+            ipf_devices=ipf_devices,
+            log_list=log_list,
+            prompt_delimiter=prompt_delimiter,
+            verbose=verbose,
         )
         if not file_output:
             display_cve_2024_3400(result)
+    elif temperature:
+        # supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "aci", "juniper", "arubasw"]
+        supported_families = ["nx-os", "aci", "ios-xe", "junos"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
+        result = find_temperature(
+            ipf_devices=ipf_devices,
+            log_list=log_list,
+            prompt_delimiter=prompt_delimiter,
+            verbose=verbose,
+        )
+        # not displaying the data in console, due to its size. Saved as temperature.csv.
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))

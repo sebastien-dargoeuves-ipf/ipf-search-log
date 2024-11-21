@@ -26,7 +26,7 @@ In the file `.env` you have created, you will need to set the variables:
 * `IPF_TOKEN = "abcd1234"` enter the API token
 * `IPF_VERIFY = true` use false if you are using a self-signed certificate
 * `IPF_SNAPSHOT` leave blank if you want to use the latest snapshot, otherwise add the `id` of the snapshot, i.e. `66365ad3-e568-403a-91a3-de1775b4f600`
-* `PROMPT_DELIMITER = "#"` this is the sign directly after the hostname from the command line, this is for us to know where to start the search for a command. For example, on Cisco, if you are in enabled mode you would use `#`
+* `PROMPT_DELIMITER = "#|>"` regex to capture the sign directly after the hostname from the command line, this is for us to know where to start the search for a command. For example, on Cisco, if you are in enabled mode you would use `#` or `>` otherwise.
 * `DEVICES_FILTER = '{"hostname": ["like", "L35AC12"]}'` This is the filter used to get the list of devices for which we want to search the specific string, in the command_section. To create the filter, you can use the `?` on the inventory table of IP Fabric to see how the filter is generated.
 
 * `INPUT_DATA` is the list of string/value we want to search for in the log.
@@ -59,12 +59,13 @@ python search_logs.py [OPTIONS]
 
 Options:
 
-* --verbose, -v: Enable verbose mode for detailed output.
-* --dhcp-interfaces, -d: Check for interfaces configured as DHCP clients.
-* --switchport-interfaces, -sw: Check switchport interfaces to identify access ports (only for IOS and IOS-XE)
-* --password-encryption, -pwd: check the level of encryption of different password, key... for IOS, IOS-XE, IOS-XR, NXOS and EOS.
-* --macro-interfaces, -macro: look for interfaces with macro profile applied. Works for IOS and IOS-XE
-* --file-output FILE, -fo FILE: Write the output to a file in JSON format.
+* `--verbose`, `-v`: Enable verbose mode for detailed output.
+* `--dhcp-interfaces`, `-d`: Check for interfaces configured as DHCP clients.
+* `--switchport-interfaces`, `-sw`: Check switchport interfaces to identify access ports (only for IOS and IOS-XE).
+* `--password-encryption`, `-pwd`: check the level of encryption of different password, key... for IOS, IOS-XE, IOS-XR, NXOS and EOS.
+* `--macro-interfaces`, `-macro`: look for interfaces with macro profile applied. Works for IOS and IOS-XE.
+* `--temperature`, `-temp`: Collect temperature information from ios, ios-xe, ios-xr, nxos, aci, junos and aci devices.
+* `--file-output FILE`, `-fo` FILE: Write the output to a file in JSON format.
 
 #### Examples
 

@@ -1,5 +1,4 @@
-"""
-Set of functions to download log file from IP Fabric and search through those
+"""Set of functions to download log file from IP Fabric and search through those
 2022-11 - version 1.0
 """
 
@@ -13,9 +12,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_dhcp_interfaces(result: list):
-    """
-    Takes the result and display if an interfce is conigured via DHCP or not
-    """
+    """Takes the result and display if an interfce is conigured via DHCP or not"""
     result_ok = []
     result_nok = []
     for check in result:
@@ -29,25 +26,21 @@ def display_dhcp_interfaces(result: list):
     print(result_nok)
 
 
-def search_dhcp_interfaces(
-    ipf_client: IPFClient, log_list, prompt_delimiter: str, verbose: bool = False
-):
+def search_dhcp_interfaces(ipf_client: IPFClient, log_list, prompt_delimiter: str, verbose: bool = False):
     """A function to search if an Interface with an IP has been allocated via DHCP or not
-    Attributes:
+
+    Attributes
     ----------
     input_strings: list of strings
         the list of strings to search for
     log_list: list of objects
         object items containing hostnames, log files, ..
+
     """
 
     def get_device_interfaces(ipf_client: IPFClient, sn: str):
-        """
-        Return the list of relevant interfaces -> assigned with an IP Address
-        """
-        filter_interfaces_with_ip = {
-            "and": [{"primaryIp": ["empty", False]}, {"sn": ["eq", sn]}]
-        }
+        """Return the list of relevant interfaces -> assigned with an IP Address"""
+        filter_interfaces_with_ip = {"and": [{"primaryIp": ["empty", False]}, {"sn": ["eq", sn]}]}
         return ipf_client.inventory.interfaces.all(filters=filter_interfaces_with_ip)
 
     result = []
@@ -70,9 +63,7 @@ def search_dhcp_interfaces(
                 pattern = rf'(^{item["interface"]}.*$[\n\r]*(?:^\s.*$[\n\r]*)*)'
                 section_regex = re.compile(pattern, re.MULTILINE)
                 if section := section_regex.search(command_section[0]):
-                    present_in_log = (
-                        "DHCP" if input_string["match"] in section[0] else "NOT DHCP"
-                    )
+                    present_in_log = "DHCP" if input_string["match"] in section[0] else "NOT DHCP"
                     if verbose:
                         item["matched_section"] = section[0]
                 else:
