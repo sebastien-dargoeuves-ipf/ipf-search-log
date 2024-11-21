@@ -8,9 +8,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_cve_2024_3400(result: list):
-    """
-    Print the result
-    """
+    """Print the result"""
     new_result = [r for r in result if len(list(r.values())[0]) != 0]
     # result_ok = []
     # result_nok = []
@@ -28,6 +26,7 @@ def display_cve_2024_3400(result: list):
 
 def get_device_family(ipf_devices, sn):
     return [device["family"] for device in ipf_devices if device["sn"] == sn][0]
+
 
 def get_os_version(ipf_devices, sn):
     return [device["version"] for device in ipf_devices if device["sn"] == sn][0]
@@ -50,17 +49,19 @@ def search_cve_2024_3400(
 
 
 def pan_os_config_cve_2024_3400(log, prompt_delimiter, version):
-    """
-    Searches for specific patterns in a log text and extracts relevant information.
+    """Searches for specific patterns in a log text and extracts relevant information.
 
     Args:
+    ----
         log (dict): The log information containing the hostname and text.
         prompt_delimiter (str): The delimiter used in the command prompt.
 
     Returns:
+    -------
         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
 
     Examples:
+    --------
         log = {
             "hostname": "Router1",
             "text": "enable password 1234\nusername admin password 5678\ntacacs.server 192.168.1.1\nkey 9876"
@@ -68,11 +69,11 @@ def pan_os_config_cve_2024_3400(log, prompt_delimiter, version):
         prompt = "# "
         result = iosxe_password_encryption(log, prompt)
         # Output: {"Router1": ["enable: 1234", "username admin: 5678", "tacacs.server: 192.168.1.1", "key: 9876"]}
-    """
 
+    """
     input_string = {
         "command": "show config merged",
-        "match": r"global-protect.*enable;"
+        "match": r"global-protect.*enable;",
         # "match": r"(global-protect[^{}*]*\{[^{}]*\})|(device-telemetry \{[^{}]*\})|(telemetry\senable;)"
     }
     # we search and extract the output for the show ip interface command
