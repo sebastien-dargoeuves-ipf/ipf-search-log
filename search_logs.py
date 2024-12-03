@@ -31,6 +31,8 @@ from modules.logs_switchport import (
     search_switchport_logs,
 )
 from modules.logs_temperature import find_temperature
+from modules.logs_intf_last_counters import find_interfaces_last_counters
+from modules.logs_intf_pause_txrx import find_pause_txrx
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -70,6 +72,18 @@ def main(
         "--temperature",
         "-temp",
         help="Check the temperatures of the different modules",
+    ),
+    pause_counter_interf: bool = typer.Option(
+        False,
+        "--pause-counter-interfaces",
+        "-pause",
+        help="Check Rx/Tx pause counters on interfaces",
+    ),
+    used_counter_interf: bool = typer.Option(
+        False,
+        "--used-counter-interfaces",
+        "-used",
+        help="Check last input/output counters on interfaces",
     ),
     cve_2024_3400: bool = typer.Option(
         False,
@@ -185,6 +199,26 @@ def main(
         supported_families = ["nx-os", "aci", "ios-xe", "junos"]
         log_list = get_logs_supported_devices(ipf_devices, supported_families)
         result = find_temperature(
+            ipf_devices=ipf_devices,
+            log_list=log_list,
+            prompt_delimiter=prompt_delimiter,
+            verbose=verbose,
+        )
+    elif pause_counter_interf:
+        # The plan is to only support nx-os for now
+        supported_families = ["nx-os"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
+        result = find_pause_txrx(
+            ipf_devices=ipf_devices,
+            log_list=log_list,
+            prompt_delimiter=prompt_delimiter,
+            verbose=verbose,
+        )
+    elif used_counter_interf:
+        # supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "aci", "juniper", "arubasw"]
+        supported_families = ["nx-os", "aci", "ios-xe"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
+        result = find_interfaces_last_counters(
             ipf_devices=ipf_devices,
             log_list=log_list,
             prompt_delimiter=prompt_delimiter,

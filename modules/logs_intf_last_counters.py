@@ -7,7 +7,7 @@ with contextlib.suppress(ImportError):
     from rich import print
 
 
-def display_interfaces_macro(result: list):
+def display_interfaces_last_counters(result: list):
     """Takes the result and display it"""
     new_result = [r for r in result if len(list(r.values())[0]) != 0]
     # result_ok = []
@@ -28,7 +28,7 @@ def get_device_family(ipf_devices, sn):
     return [device["family"] for device in ipf_devices if device["sn"] == sn][0]
 
 
-def search_interfaces_macro(
+def find_interfaces_last_counters(
     ipf_client: IPFClient,
     ipf_devices: list,
     log_list,
@@ -39,17 +39,17 @@ def search_interfaces_macro(
     for log in log_list:
         family = get_device_family(ipf_devices, log["sn"])
         if family in ["ios-xe", "ios"]:
-            result.append(ios_xe_interfaces_macro(log, prompt_delimiter, family))
+            result.append(ios_xe_interfaces_last_counters(log, prompt_delimiter, family))
         # elif family == "ios-xr":
-        #     result.append(iosxr_interfaces_macro(log, prompt_delimiter))
+        #     result.append(iosxr_interfaces_last_counters(log, prompt_delimiter))
         # elif family == "nx-os":
-        #     result.append(nxos_interfaces_macro(log, prompt_delimiter))
+        #     result.append(nxos_interfaces_last_counters(log, prompt_delimiter))
         # elif family == "eos":
-        #     result.append(eos_interfaces_macro(log, prompt_delimiter))
+        #     result.append(eos_interfaces_last_counters(log, prompt_delimiter))
     return result
 
 
-def ios_xe_interfaces_macro(log, prompt_delimiter, family):
+def ios_xe_interfaces_last_counters(log, prompt_delimiter, family):
     """Searches for specific patterns in a log text and extracts relevant information.
 
     Args:
@@ -86,7 +86,7 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
         interface_blocks = [block for block in split_commands if block.startswith("interface")]  # Filter only
 
         # Initialize a list to store (interface name, description) pairs
-        interface_macro_pairs = []
+        interface_last_counters_pairs = []
 
         # Iterate through each interface block
         for block in interface_blocks:
@@ -96,7 +96,7 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
                 for line in lines:
                     if "macro description" in line:
                         description = line.split("macro description ")[1]
-                        interface_macro_pairs.append({interface_name: description})
+                        interface_last_counters_pairs.append({interface_name: description})
                         break  # Exit loop when the first 'macro description' line is found
 
         # pattern = re.compile(input_string["match"])
@@ -106,4 +106,4 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
 
     # output = [{interfaces: macro} for interfaces, macro in matches]
     # output.append({"family": family})
-    return {log["hostname"]: interface_macro_pairs}
+    return {log["hostname"]: interface_last_counters_pairs}
