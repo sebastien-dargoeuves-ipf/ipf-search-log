@@ -2,12 +2,13 @@ import contextlib
 import re
 
 import pandas as pd
+from ipfabric import IPFClient
 
 with contextlib.suppress(ImportError):
     from rich import print
 
 
-def display_interfaces_last_counters(result: list):
+def display_interfaces_interfaces_pause_txrx(result: list):
     """Takes the result and display it"""
     new_result = [r for r in result if len(list(r.values())[0]) != 0]
     # result_ok = []
@@ -27,13 +28,26 @@ def display_interfaces_last_counters(result: list):
 def get_device_family(ipf_devices, sn):
     return [device["family"] for device in ipf_devices if device["sn"] == sn][0]
 
+def get_devices_with_fex(ipf_client: IPFClient, ipf_devices: list):
+    # Get all unique SN of devices with FEX modules
+    sn_devices_with_fex = {
+        parent_device['sn']
+        for entry in ipf_client.technology.platforms.cisco_fex_modules.all()
+        for parent_device in entry['parents']
+    }
+
+    return [
+        device
+        for device in ipf_devices
+        if device['sn'] in sn_devices_with_fex
+    ]
 
 def save_to_csv(result, title: str):
     # use pandas to save the result to a csv file
     df = pd.DataFrame(result)
     df.to_csv(f"{title}.csv", index=False)
 
-def find_interfaces_last_counters(
+def find_pause_txrx(
     ipf_devices: list,
     log_list,
     prompt_delimiter: str,

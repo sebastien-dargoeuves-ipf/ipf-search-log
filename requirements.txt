@@ -2,3 +2,5 @@ ipfabric
 dotenv
 typer
 rich
+tqdm
+pandas
