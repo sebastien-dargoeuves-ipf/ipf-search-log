@@ -191,6 +191,7 @@ def main(
             verbose=verbose,
         )
         # not displaying the data in console, due to its size. Saved as temperature.csv.
+
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "eos"]

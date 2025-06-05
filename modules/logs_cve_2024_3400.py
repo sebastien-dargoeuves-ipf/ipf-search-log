@@ -69,8 +69,6 @@ def pan_os_config_cve_2024_3400(log, prompt_delimiter, version):
         prompt = "# "
         result = iosxe_password_encryption(log, prompt)
         # Output: {"Router1": ["enable: 1234", "username admin: 5678", "tacacs.server: 192.168.1.1", "key: 9876"]}
-
-    """
     input_string = {
         "command": "show config merged",
         "match": r"global-protect.*enable;",
