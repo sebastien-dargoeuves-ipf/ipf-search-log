@@ -85,6 +85,7 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
         split_commands = command_section[0].split("!\r\n")  # Split the commands based on '!\r\n' delimiter
         interface_blocks = [block for block in split_commands if block.startswith("interface")]  # Filter only
 
+
         # Initialize a list to store (interface name, description) pairs
         interface_macro_pairs = []
 
@@ -96,6 +97,7 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
                 for line in lines:
                     if "macro description" in line:
                         description = line.split("macro description ")[1]
+
                         interface_macro_pairs.append({interface_name: description})
                         break  # Exit loop when the first 'macro description' line is found
 

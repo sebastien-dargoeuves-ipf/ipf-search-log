@@ -32,6 +32,7 @@ from modules.logs_switchport import (
 )
 from modules.logs_temperature import find_temperature
 
+
 with contextlib.suppress(ImportError):
     from rich import print
 
@@ -71,6 +72,7 @@ def main(
         "-temp",
         help="Check the temperatures of the different modules",
     ),
+
     cve_2024_3400: bool = typer.Option(
         False,
         "--cve-2024-3400",
@@ -191,6 +193,7 @@ def main(
             verbose=verbose,
         )
         # not displaying the data in console, due to its size. Saved as temperature.csv.
+
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "eos"]
