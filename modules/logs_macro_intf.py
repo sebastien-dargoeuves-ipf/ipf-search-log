@@ -8,9 +8,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_interfaces_macro(result: list):
-    """
-    Takes the result and display if an interfce is conigured via DHCP or not
-    """
+    """Takes the result and display if an interfce is conigured via DHCP or not"""
     new_result = [r for r in result if len(list(r.values())[0]) != 0]
     # result_ok = []
     # result_nok = []
@@ -52,17 +50,19 @@ def search_interfaces_macro(
 
 
 def ios_xe_interfaces_macro(log, prompt_delimiter, family):
-    """
-    Searches for specific patterns in a log text and extracts relevant information.
+    """Searches for specific patterns in a log text and extracts relevant information.
 
     Args:
+    ----
         log (dict): The log information containing the hostname and text.
         prompt_delimiter (str): The delimiter used in the command prompt.
 
     Returns:
+    -------
         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
 
     Examples:
+    --------
         log = {
             "hostname": "Router1",
             "text": "enable password 1234\nusername admin password 5678\ntacacs.server 192.168.1.1\nkey 9876"
@@ -70,8 +70,8 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
         prompt = "# "
         result = iosxe_password_encryption(log, prompt)
         # Output: {"Router1": ["enable: 1234", "username admin: 5678", "tacacs.server: 192.168.1.1", "key: 9876"]}
-    """
 
+    """
     input_string = {
         "command": "show running-config",
         "match": r"(?<!\$INTERFACE)\ninterface (\S+)[\s\S]*?macro description (\S+)",
@@ -82,20 +82,22 @@ def ios_xe_interfaces_macro(log, prompt_delimiter, family):
     command_regex = re.compile(command_pattern, re.MULTILINE)
 
     if command_section := command_regex.search(log["text"]):
-        split_commands = command_section[0].split('!\r\n')  # Split the commands based on '!\r\n' delimiter
-        interface_blocks = [block for block in split_commands if block.startswith('interface')]  # Filter only 
+        split_commands = command_section[0].split("!\r\n")  # Split the commands based on '!\r\n' delimiter
+        interface_blocks = [block for block in split_commands if block.startswith("interface")]  # Filter only
+
 
         # Initialize a list to store (interface name, description) pairs
         interface_macro_pairs = []
 
         # Iterate through each interface block
         for block in interface_blocks:
-            if 'macro description' in block:
-                lines = block.split('\r\n')
-                interface_name = lines[0].split('interface ')[1].strip()
+            if "macro description" in block:
+                lines = block.split("\r\n")
+                interface_name = lines[0].split("interface ")[1].strip()
                 for line in lines:
-                    if 'macro description' in line:
-                        description = line.split('macro description ')[1]
+                    if "macro description" in line:
+                        description = line.split("macro description ")[1]
+
                         interface_macro_pairs.append({interface_name: description})
                         break  # Exit loop when the first 'macro description' line is found
 

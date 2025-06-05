@@ -8,9 +8,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_password_encryption(result: list):
-    """
-    Takes the result and display if an interfce is conigured via DHCP or not
-    """
+    """Takes the result and display if an interfce is conigured via DHCP or not"""
     # result_ok = []
     # result_nok = []
     # for check in result:
@@ -51,17 +49,19 @@ def find_password_encryption(
 
 
 def iosxe_password_encryption(log, prompt_delimiter):
-    """
-    Searches for specific patterns in a log text and extracts relevant information.
+    """Searches for specific patterns in a log text and extracts relevant information.
 
     Args:
+    ----
         log (dict): The log information containing the hostname and text.
         prompt_delimiter (str): The delimiter used in the command prompt.
 
     Returns:
+    -------
         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
 
     Examples:
+    --------
         log = {
             "hostname": "Router1",
             "text": "enable password 1234\nusername admin password 5678\ntacacs.server 192.168.1.1\nkey 9876"
@@ -69,8 +69,8 @@ def iosxe_password_encryption(log, prompt_delimiter):
         prompt = "# "
         result = iosxe_password_encryption(log, prompt)
         # Output: {"Router1": ["enable: 1234", "username admin: 5678", "tacacs.server: 192.168.1.1", "key: 9876"]}
-    """
 
+    """
     input_string = {
         "command": "show running-config",
         "match": r"\benable password\s\d\s|username.*password\s\d\s|snmp-server.group.*\n|tacacs.server.*\r|radius.server.dnac*\r|.*key\s\d\s\b",
@@ -99,28 +99,25 @@ def iosxe_password_encryption(log, prompt_delimiter):
                 # output.append({key.strip(): value.strip()})
                 skip_next = True
         else:
-            output.append(
-                match.replace(" password", ": password")
-                .replace("server group", "server group:")
-                .strip()
-            )
+            output.append(match.replace(" password", ": password").replace("server group", "server group:").strip())
             # key, value = match.replace(" password", ": password").replace("server group","server group:").strip().split(":")
             # output.append({key.strip(): value.strip()})
     return {log["hostname"]: output}
 
 
 def iosxr_password_encryption(log, prompt_delimiter):
-    """
-    Searches for specific patterns in a log text and extracts relevant information.
+    """Searches for specific patterns in a log text and extracts relevant information.
 
     Args:
+    ----
         log (dict): The log information containing the hostname and text.
         prompt_delimiter (str): The delimiter used in the command prompt.
 
     Returns:
+    -------
         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
-    """
 
+    """
     input_string = {
         "command": "show running-config",
         "match": r"\busername\s\w+|snmp-server.user.*\n|server-private.*\n|tacacs-server.host.*\n|key.chain.*\n|key-string\s\S+|.*secret\s\d+\s|.*key\s\S\s\S+\b",
@@ -176,17 +173,18 @@ def iosxr_password_encryption(log, prompt_delimiter):
 
 
 def nxos_password_encryption(log, prompt_delimiter):
-    """
-    Searches for specific patterns in a log text and extracts relevant information.
+    """Searches for specific patterns in a log text and extracts relevant information.
 
     Args:
+    ----
         log (dict): The log information containing the hostname and text.
         prompt_delimiter (str): The delimiter used in the command prompt.
 
     Returns:
+    -------
         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
-    """
 
+    """
     input_string = {
         "command": "show running-config",
         "match": r"\busername\s[\w\S]+\s\w+\s\d+|tacacs-server\shost\s\S+\skey\s\d+|snmp-server\suser\s[\w\S]+.*auth\s\w+\b",
@@ -206,17 +204,18 @@ def nxos_password_encryption(log, prompt_delimiter):
 
 
 def eos_password_encryption(log, prompt_delimiter):
-    """
-    Searches for specific patterns in a log text and extracts relevant information.
+    """Searches for specific patterns in a log text and extracts relevant information.
 
     Args:
+    ----
         log (dict): The log information containing the hostname and text.
         prompt_delimiter (str): The delimiter used in the command prompt.
 
     Returns:
+    -------
         dict: A dictionary containing the hostname as the key and a list of extracted information as the value.
-    """
 
+    """
     input_string = {
         "command": "show running-config",
         "match": r"\busername.*secret\s\w+|tacacs-server\shost\s.*key\s\w+\s|.*\w+\skey\s\w+\s|.*\w+\spassword\s\w+\s|snmp-server\suser\s[\w\S]+.*auth\s\w+\b",
