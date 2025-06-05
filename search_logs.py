@@ -193,6 +193,8 @@ def main(
         # not displaying the data in console, due to its size. Saved as temperature.csv.
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
+        supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "eos"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
         input_data = valid_json(os.getenv("INPUT_DATA", ""))
         result = search_logs(input_data, log_list, prompt_delimiter, verbose)
         if not file_output:
