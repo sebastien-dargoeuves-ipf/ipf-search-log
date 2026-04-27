@@ -13,7 +13,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_log_compliance(result: list):
-    """Takes the result and display if an interfce is conigured via DHCP or not"""
+    """Takes the result and display it"""
     result_ok = []
     result_nok = []
     for check in result:
@@ -33,7 +33,8 @@ def download_logs(logs, ipf_devices: list, supported_families: list):
     progress_bar = tqdm(total=len(ipf_devices), desc="Downloading logs")
     for host in ipf_devices:
         progress_bar.update(1)
-        if host["family"] not in supported_families:  # , "ios-xr", "nx-os", "eos"]:
+        if host["family"] not in supported_families:
+            # print(f"#DEBUG# device: {host['hostname']} is wrong family: {host['family']}")
             continue
         # Get the log file
         if dev_log := logs.get_text_log(host):
@@ -44,6 +45,8 @@ def download_logs(logs, ipf_devices: list, supported_families: list):
                     "text": dev_log,
                 },
             )
+        # else:
+        #     print(f"#DEBUG# device: {host['hostname']} has no log")
     return return_list
 
 

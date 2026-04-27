@@ -8,7 +8,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_interfaces_macro(result: list):
-    """Takes the result and display if an interfce is conigured via DHCP or not"""
+    """Takes the result and display it"""
     new_result = [r for r in result if len(list(r.values())[0]) != 0]
     # result_ok = []
     # result_nok = []

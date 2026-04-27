@@ -8,7 +8,7 @@ with contextlib.suppress(ImportError):
 
 
 def display_password_encryption(result: list):
-    """Takes the result and display if an interfce is conigured via DHCP or not"""
+    """Takes the result and display it"""
     # result_ok = []
     # result_nok = []
     # for check in result:
