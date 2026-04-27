@@ -31,6 +31,8 @@ from modules.logs_switchport import (
     search_switchport_logs,
 )
 from modules.logs_temperature import find_temperature
+from modules.logs_intf_last_counters import find_interfaces_last_counters
+from modules.logs_intf_pause_txrx import get_devices_with_fex, find_pause_txrx
 
 with contextlib.suppress(ImportError):
     from rich import print
@@ -71,6 +73,18 @@ def main(
         "-temp",
         help="Check the temperatures of the different modules",
     ),
+    pause_counter_interf: bool = typer.Option(
+        False,
+        "--pause-counter-interfaces",
+        "-pause",
+        help="Check Rx/Tx pause counters on interfaces",
+    ),
+    # used_counter_interf: bool = typer.Option(
+    #     False,
+    #     "--used-counter-interfaces",
+    #     "-used",
+    #     help="Check last input/output counters on interfaces",
+    # ),
     cve_2024_3400: bool = typer.Option(
         False,
         "--cve-2024-3400",
@@ -190,7 +204,28 @@ def main(
             prompt_delimiter=prompt_delimiter,
             verbose=verbose,
         )
-        # not displaying the data in console, due to its size. Saved as temperature.csv.
+    elif pause_counter_interf:
+        # We only want to check devices with FEX modules
+        devices_with_fex = get_devices_with_fex(ipf_client, ipf_devices)
+        supported_families = ["nx-os"]
+        log_list = get_logs_supported_devices(devices_with_fex, supported_families)
+        result = find_pause_txrx(
+            ipf_devices=devices_with_fex,
+            log_list=log_list,
+            prompt_delimiter=prompt_delimiter,
+            verbose=verbose,
+        )
+    # elif used_counter_interf:
+    #     # supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "aci", "juniper", "arubasw"]
+    #     supported_families = ["nx-os", "aci", "ios-xe"]
+    #     log_list = get_logs_supported_devices(ipf_devices, supported_families)
+    #     result = find_interfaces_last_counters(
+    #         ipf_devices=ipf_devices,
+    #         log_list=log_list,
+    #         prompt_delimiter=prompt_delimiter,
+    #         verbose=verbose,
+    #     )
+    
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
         input_data = valid_json(os.getenv("INPUT_DATA", ""))

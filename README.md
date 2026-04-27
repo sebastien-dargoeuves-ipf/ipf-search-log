@@ -79,6 +79,11 @@ Options:
 `python search_logs.py --password-encryption`
 * Check interfaces with Macro applied
 `python search_logs.py --macro-interfaces`
+* Check the value of the temperature sensors
+`python search_logs.py --temperature`
+* Check interfaces Rx or Tx Pause on Fex interfaces
+`python search_logs.py --pause-counter-interfaces`
+
 * Write the output to a JSON file:
 `python search_logs.py --file-output output.json`
 
