@@ -65,6 +65,7 @@ Options:
 * `--password-encryption`, `-pwd`: check the level of encryption of different password, key... for IOS, IOS-XE, IOS-XR, NXOS and EOS.
 * `--macro-interfaces`, `-macro`: look for interfaces with macro profile applied. Works for IOS and IOS-XE.
 * `--temperature`, `-temp`: Collect temperature information from ios, ios-xe, ios-xr, nxos, aci, junos and aci devices.
+* `--os-details`, `-os`: Extract OS details from the `show version` output for HPE Aruba devices: BIOS Version for arubacx, Boot ROM Version for arubasw.
 * `--file-output FILE`, `-fo` FILE: Write the output to a file in JSON format.
 
 #### Examples
@@ -81,6 +82,8 @@ Options:
 `python search_logs.py --macro-interfaces`
 * Check the value of the temperature sensors
 `python search_logs.py --temperature`
+* Extract BIOS / Boot ROM version for HPE Aruba devices
+`python search_logs.py --os-details`
 * Check interfaces Rx or Tx Pause on Fex interfaces
 `python search_logs.py --pause-counter-interfaces`
 
