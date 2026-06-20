@@ -31,6 +31,7 @@ from modules.logs_switchport import (
     search_switchport_logs,
 )
 from modules.logs_temperature import find_temperature
+from modules.logs_os_details import find_os_details
 from modules.logs_intf_last_counters import find_interfaces_last_counters
 from modules.logs_intf_pause_txrx import get_devices_with_fex, find_pause_txrx
 
@@ -78,6 +79,12 @@ def main(
         "--pause-counter-interfaces",
         "-pause",
         help="Check Rx/Tx pause counters on interfaces",
+    ),
+    os_details: bool = typer.Option(
+        False,
+        "--os-details",
+        "-os",
+        help="Extract OS details (BIOS / Boot ROM version) for HPE Aruba arubacx/arubasw",
     ),
     # used_counter_interf: bool = typer.Option(
     #     False,
@@ -228,6 +235,8 @@ def main(
     
     # Otherwise, we perform the search as per the INPUT_DATA in the .env file
     else:
+        supported_families = ["ios-xe", "ios", "ios-xr", "nx-os", "eos"]
+        log_list = get_logs_supported_devices(ipf_devices, supported_families)
         input_data = valid_json(os.getenv("INPUT_DATA", ""))
         result = search_logs(input_data, log_list, prompt_delimiter, verbose)
         if not file_output:
